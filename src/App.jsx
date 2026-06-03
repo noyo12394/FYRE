@@ -11,18 +11,25 @@ import { bridges, MAX_SELECTIONS } from './data/bridges.js'
 
 export default function App() {
   const [selectedIds, setSelectedIds] = useState([])
+  const [reasons, setReasons] = useState({}) // bridgeId -> reasonId
   const [showResults, setShowResults] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [shake, setShake] = useState(false)
   const [toast, setToast] = useState('')
 
-  // Auto-dismiss the warning toast.
+  // A brief opening "aftershock" shudder of the map to set the scene.
+  useEffect(() => {
+    setShake(true)
+    const t = setTimeout(() => setShake(false), 1200)
+    return () => clearTimeout(t)
+  }, [])
+
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(''), 2600)
     return () => clearTimeout(t)
   }, [toast])
 
-  // Confetti only shows for a short celebratory burst.
   useEffect(() => {
     if (!showConfetti) return
     const t = setTimeout(() => setShowConfetti(false), 3200)
@@ -32,14 +39,24 @@ export default function App() {
   const toggleBridge = useCallback((id) => {
     setSelectedIds((prev) => {
       if (prev.includes(id)) {
+        setReasons((r) => {
+          const next = { ...r }
+          delete next[id]
+          return next
+        })
         return prev.filter((b) => b !== id)
       }
       if (prev.length >= MAX_SELECTIONS) {
-        setToast('Inspection crews are limited! You can only pick 5 bridges this week.')
+        setToast('Inspection crews are limited! You can only flag 5 bridges this week.')
         return prev
       }
+      setReasons((r) => ({ ...r, [id]: r[id] || 'hunch' }))
       return [...prev, id]
     })
+  }, [])
+
+  const setReason = useCallback((id, reasonId) => {
+    setReasons((r) => ({ ...r, [id]: reasonId }))
   }, [])
 
   const handleSubmit = useCallback(() => {
@@ -50,19 +67,19 @@ export default function App() {
 
   const handlePlayAgain = useCallback(() => {
     setSelectedIds([])
+    setReasons({})
     setShowResults(false)
     setShowConfetti(false)
   }, [])
 
   return (
     <div className="app">
-      {/* floating decorative icons in the background */}
       <div className="floaties" aria-hidden="true">
         <span className="floaty floaty--1">🌥️</span>
-        <span className="floaty floaty--2">🐦</span>
+        <span className="floaty floaty--2">🚁</span>
         <span className="floaty floaty--3">🎈</span>
         <span className="floaty floaty--4">☀️</span>
-        <span className="floaty floaty--5">🦋</span>
+        <span className="floaty floaty--5">🐦</span>
       </div>
 
       <Header />
@@ -75,11 +92,14 @@ export default function App() {
             bridges={bridges}
             selectedIds={selectedIds}
             onToggle={toggleBridge}
+            showShake={shake}
           />
           <MissionPanel
             bridges={bridges}
             selectedIds={selectedIds}
+            reasons={reasons}
             onToggle={toggleBridge}
+            onSetReason={setReason}
             onSubmit={handleSubmit}
           />
         </div>
@@ -88,7 +108,8 @@ export default function App() {
       </main>
 
       <footer className="app__footer">
-        Made with 💖 for QuakeQuest · Week 1 prototype · Have fun, planner!
+        QuakeQuest · Week 1 · A catastrophe-modeling field module · Based on the
+        1994 Northridge earthquake
       </footer>
 
       {showConfetti && <Confetti />}
@@ -98,6 +119,7 @@ export default function App() {
         <ResultsModal
           bridges={bridges}
           selectedIds={selectedIds}
+          reasons={reasons}
           onPlayAgain={handlePlayAgain}
           onClose={() => setShowResults(false)}
         />

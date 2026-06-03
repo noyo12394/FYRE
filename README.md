@@ -1,28 +1,39 @@
-# 🌉 QuakeQuest: Bridge Rescue — Week 1
+# 🌉 QuakeQuest: Bridge Triage — Week 1 (1994 Northridge)
 
-A cute, playful, browser-based educational mini-game for **Week 1** of a
-first-year undergraduate **catastrophe modeling** module.
+A polished, playful-yet-professional browser mini-game for **Week 1** of a
+first-year undergraduate **catastrophe modeling** module, set during the real
+**1994 Northridge earthquake** (Mw 6.7, San Fernando Valley).
 
-> _"An earthquake just shook QuakeTown! You are the city's new resilience
-> planner. Based only on what you can see, choose the bridges you think should
-> be inspected first."_
+> _"It's 4:31 a.m., January 17, 1994. A hidden-fault earthquake just struck
+> beneath the San Fernando Valley. You're the resilience planner in the
+> Emergency Operations Center — with no engineering data yet. Which bridges get
+> a crew first?"_
 
-Week 1 is **not** about equations. Students act as policy makers and use
-**intuition** to pick which bridges to inspect after an earthquake. After
-submitting, they get friendly feedback — some picks were good, some clues were
-missed — and a teaser for the data layers they'll unlock in later weeks.
+Week 1 is **not** about equations. Students do rapid **triage** using intuition,
+flagging up to five bridges and tagging *why*. The debrief then reveals what
+actually happened — grounded in the documented damage record (MCEER-98-0004) —
+including the four real collapses (La Cienega–Venice, Gavin Canyon, the I-5/SR-14
+Newhall Pass interchange, and Mission–Gothic), and teaches three real lessons:
+looks deceive, a few failures dominate cost (~6 collapses ≈ 69% of repair $),
+and importance ≠ fragility.
 
 ## ✨ Features
 
-- Cartoon city map built with pure HTML/CSS/SVG (no GIS, no mapbox/leaflet)
-- 10 clickable cute bridges with hover tooltips and vague clues
-- Select up to **5** bridges (with a friendly "crews are limited" toast)
-- Confetti / sparkle celebration on submit
-- Friendly results modal with non-harsh score labels, per-bridge feedback,
-  missed-clue cards, and a Week 1 teaching message
-- Locked "upcoming weeks" cards (Weeks 2–6)
-- Pastel colors, rounded cards, mascot **PGA Pal** 🐿️⛑️, floating icons
-- Respects `prefers-reduced-motion`
+- Cartoon **San Fernando Valley** map in pure HTML/CSS/SVG — freeway network
+  (I-5, I-405, I-10, US-101, SR-118, SR-14), a pulsing **epicenter** with a
+  radial shaking field, LA River, hills, hospital, cracks. No GIS / mapbox / leaflet.
+- 10 clickable bridges (4 real collapses + realistic medium/low cases) with
+  hover field-notes and vague clues — no numbers.
+- Flag up to **5** bridges, each with a **"why did you flag it?"** reasoning tag
+  that gets scored against the real cause of failure.
+- Confetti on dispatch; an opening map "aftershock" shudder.
+- Professional **debrief**: collapses caught, reasoning matches, per-bridge
+  real outcomes (Collapsed/Major/Minor/Safe), missed-clue cards, three
+  real-event insight cards, and the Week 1 lesson.
+- Course roadmap (Weeks 2–6) mirroring the real capstone arc: shaking intensity,
+  inventory & age, vulnerability score, damage probability, network criticality.
+- Mascot field-guide **PGA Pal** 🐿️⛑️ (PGA intentionally unexplained until Week 2),
+  rounded cards, `prefers-reduced-motion` support.
 
 ## 🚀 Getting started
 

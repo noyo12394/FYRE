@@ -1,10 +1,10 @@
 import React from 'react'
 
-// A single clickable bridge object placed on the cartoon map.
-// It is a little cartoon bridge (SVG) — not just a button — with a hover
-// tooltip showing the bridge name and a vague observation (the "clue").
+// A single clickable bridge on the valley map. It's a little cartoon bridge
+// (SVG) — not just a button — with a hover tooltip showing the bridge name,
+// its route, and a vague field observation (the "clue"). No risk numbers.
 export default function Bridge({ bridge, selected, onToggle }) {
-  const { name, x, y, rotation, clue, emoji, trueRisk } = bridge
+  const { name, route, x, y, rotation, clue, emoji, trueRisk } = bridge
 
   return (
     <button
@@ -13,7 +13,7 @@ export default function Bridge({ bridge, selected, onToggle }) {
       style={{ left: `${x}%`, top: `${y}%`, '--rot': `${rotation}deg` }}
       onClick={() => onToggle(bridge.id)}
       aria-pressed={selected}
-      aria-label={`${name}. Clue: ${clue}. ${selected ? 'Selected' : 'Not selected'}`}
+      aria-label={`${name} on ${route}. Field note: ${clue}. ${selected ? 'Flagged' : 'Not flagged'}`}
     >
       <span className="bridge__art" aria-hidden="true">
         <svg viewBox="0 0 80 46" width="80" height="46">
@@ -27,7 +27,7 @@ export default function Bridge({ bridge, selected, onToggle }) {
           />
           {/* deck */}
           <rect x="4" y="34" width="72" height="8" rx="4" className="bridge__deck" />
-          {/* cables / supports */}
+          {/* supports */}
           <line x1="22" y1="34" x2="22" y2="20" className="bridge__cable" />
           <line x1="40" y1="34" x2="40" y2="10" className="bridge__cable" />
           <line x1="58" y1="34" x2="58" y2="20" className="bridge__cable" />
@@ -38,6 +38,7 @@ export default function Bridge({ bridge, selected, onToggle }) {
 
       <span className="bridge__tooltip" role="tooltip">
         <strong>{name}</strong>
+        <span className="bridge__route">{route}</span>
         <em>“{clue}”</em>
       </span>
     </button>

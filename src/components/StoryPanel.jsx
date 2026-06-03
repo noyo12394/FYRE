@@ -1,22 +1,30 @@
 import React from 'react'
 
-// The story intro panel. Sets up the scenario in friendly, playful language.
+// Briefing panel. Sets up the real Northridge scenario in plain, engaging
+// language — accessible to first-years, but more grounded than a fairy tale.
 export default function StoryPanel() {
   return (
-    <section className="story-panel" aria-label="Story introduction">
+    <section className="story-panel" aria-label="Mission briefing">
       <div className="story-panel__speech">
         <div className="story-panel__avatar" aria-hidden="true">🐿️⛑️</div>
         <div className="story-panel__bubble">
           <p>
-            <strong>An earthquake just shook QuakeTown!</strong> 😱 You are the city's
-            new <strong>resilience planner</strong>.
+            <strong>It's 4:31 a.m. on January 17, 1994.</strong> A magnitude 6.7
+            earthquake on a hidden fault has just struck beneath the San Fernando
+            Valley. 🌆💥
           </p>
           <p>
-            You do not have detailed engineering data yet. Based only on what you can
-            see, choose the bridges you think should be inspected first. 🌉🔍
+            You're the resilience planner in the city's Emergency Operations Center.
+            Inspection crews are scrambling, but you have <strong>no engineering
+            data yet</strong> — only the map and what your eyes can tell you.
+          </p>
+          <p>
+            <strong>Your call:</strong> which bridges get a crew first? Hover each
+            one for a field note, then flag the ones you'd inspect. 🔍🌉
           </p>
           <p className="story-panel__hint">
-            Tip: hover a bridge for a clue, then tap to add it to your inspection list!
+            ⚠️ The ground shook hardest near the glowing epicenter — but as you'll
+            learn, that's only one clue among many.
           </p>
         </div>
       </div>

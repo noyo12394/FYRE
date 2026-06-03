@@ -1,46 +1,74 @@
 import React from 'react'
+import { REASON_OPTIONS } from '../data/bridges.js'
 
-// Computes friendly results from the player's selection.
-function scoreSelection(bridges, selectedIds) {
+const reasonLabel = (id) => {
+  const r = REASON_OPTIONS.find((o) => o.id === id)
+  return r ? `${r.emoji} ${r.label}` : '🤔 Just a hunch'
+}
+
+function scoreSelection(bridges, selectedIds, reasons) {
   const selected = bridges.filter((b) => selectedIds.includes(b.id))
   const highSelected = selected.filter((b) => b.trueRisk === 'high')
   const mediumSelected = selected.filter((b) => b.trueRisk === 'medium')
-  const lowSelected = selected.filter((b) => b.trueRisk === 'low')
+  const collapsesCaught = selected.filter((b) => b.outcome === 'Collapsed')
+  const missedCollapses = bridges.filter(
+    (b) => b.outcome === 'Collapsed' && !selectedIds.includes(b.id),
+  )
   const missedHigh = bridges.filter(
     (b) => b.trueRisk === 'high' && !selectedIds.includes(b.id),
   )
-
-  // A gentle "points" idea just to pick an encouraging label — never shown as a grade.
-  const points = highSelected.length * 2 + mediumSelected.length
-
-  let label
-  if (highSelected.length >= 2 && missedHigh.length === 0) {
-    label = 'Great first instincts! 🌟'
-  } else if (points >= 3) {
-    label = 'Nice start, planner! 😊'
-  } else if (points >= 1) {
-    label = 'Good effort — but data will help! 📈'
-  } else {
-    label = 'Your city needs more clues! 🔍'
-  }
-
-  return { selected, highSelected, mediumSelected, lowSelected, missedHigh, label }
-}
-
-function usefulness(risk) {
-  if (risk === 'high') return { text: 'Smart pick! High priority. ✅', cls: 'good' }
-  if (risk === 'medium') return { text: 'Reasonable choice. 👍', cls: 'okay' }
-  return { text: 'Lower priority this time. 🤷', cls: 'meh' }
-}
-
-export default function ResultsModal({ bridges, selectedIds, onPlayAgain, onClose }) {
-  const { selected, highSelected, mediumSelected, missedHigh, label } = scoreSelection(
-    bridges,
-    selectedIds,
+  // Reasoning that matched the real dominant cause (on high-risk picks).
+  const reasoningHits = highSelected.filter(
+    (b) => (reasons[b.id] || 'hunch') === b.primaryFactor,
   )
 
+  const points = highSelected.length * 2 + mediumSelected.length + reasoningHits.length
+
+  let label
+  if (collapsesCaught.length >= 3 && missedCollapses.length <= 1) {
+    label = 'Sharp triage instincts! 🌟'
+  } else if (points >= 6) {
+    label = 'Strong start, planner! 💪'
+  } else if (points >= 3) {
+    label = 'Solid first read. 📈'
+  } else if (points >= 1) {
+    label = 'A start — real data will sharpen this. 🔍'
+  } else {
+    label = 'The valley needs a closer look! 🧭'
+  }
+
+  return {
+    selected,
+    highSelected,
+    mediumSelected,
+    collapsesCaught,
+    missedCollapses,
+    missedHigh,
+    reasoningHits,
+    label,
+  }
+}
+
+const outcomeMeta = {
+  Collapsed: { cls: 'collapsed', emoji: '💥' },
+  'Major damage': { cls: 'major', emoji: '🟠' },
+  'Moderate damage': { cls: 'moderate', emoji: '🟡' },
+  'Minor damage': { cls: 'minor', emoji: '🟢' },
+  Undamaged: { cls: 'safe', emoji: '✅' },
+}
+
+function usefulness(b) {
+  if (b.outcome === 'Collapsed') return { text: 'Critical catch — this one collapsed.', cls: 'good' }
+  if (b.trueRisk === 'high') return { text: 'Great call — it took major damage.', cls: 'good' }
+  if (b.trueRisk === 'medium') return { text: 'Reasonable — worth a look.', cls: 'okay' }
+  return { text: 'Lower priority this time.', cls: 'meh' }
+}
+
+export default function ResultsModal({ bridges, selectedIds, reasons, onPlayAgain, onClose }) {
+  const r = scoreSelection(bridges, selectedIds, reasons)
+
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Results">
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Inspection results">
       <div className="modal">
         <button className="modal__close" onClick={onClose} aria-label="Close results">
           ✕
@@ -48,64 +76,84 @@ export default function ResultsModal({ bridges, selectedIds, onPlayAgain, onClos
 
         <div className="modal__header">
           <div className="modal__mascot" aria-hidden="true">🐿️⛑️</div>
-          <h2 className="modal__title">Inspection Report</h2>
-          <p className="modal__label">{label}</p>
+          <h2 className="modal__title">Inspection Debrief</h2>
+          <p className="modal__label">{r.label}</p>
         </div>
 
         {/* Quick stats */}
         <div className="results-stats">
           <div className="results-stat results-stat--high">
-            <span className="results-stat__num">{highSelected.length}</span>
-            <span className="results-stat__cap">High-risk found</span>
+            <span className="results-stat__num">{r.collapsesCaught.length}<span className="results-stat__den">/4</span></span>
+            <span className="results-stat__cap">Collapses caught</span>
           </div>
           <div className="results-stat results-stat--medium">
-            <span className="results-stat__num">{mediumSelected.length}</span>
-            <span className="results-stat__cap">Medium-risk found</span>
+            <span className="results-stat__num">{r.highSelected.length}<span className="results-stat__den">/5</span></span>
+            <span className="results-stat__cap">High-risk flagged</span>
+          </div>
+          <div className="results-stat results-stat--reason">
+            <span className="results-stat__num">{r.reasoningHits.length}</span>
+            <span className="results-stat__cap">Reasons that matched</span>
           </div>
           <div className="results-stat results-stat--missed">
-            <span className="results-stat__num">{missedHigh.length}</span>
-            <span className="results-stat__cap">High-risk missed</span>
+            <span className="results-stat__num">{r.missedCollapses.length}</span>
+            <span className="results-stat__cap">Collapses missed</span>
           </div>
         </div>
 
-        {/* Feedback per selected bridge */}
-        <h3 className="results-section-title">Your Inspected Bridges 🌉</h3>
+        {/* Per-bridge feedback */}
+        <h3 className="results-section-title">Your Flagged Bridges 🌉</h3>
         <div className="feedback-cards">
-          {selected.map((b) => {
-            const use = usefulness(b.trueRisk)
+          {r.selected.map((b) => {
+            const use = usefulness(b)
+            const om = outcomeMeta[b.outcome] || outcomeMeta.Undamaged
+            const picked = reasons[b.id] || 'hunch'
+            const matched = b.trueRisk === 'high' && picked === b.primaryFactor
             return (
-              <div key={b.id} className={`feedback-card feedback-card--${b.trueRisk}`}>
+              <div key={b.id} className={`feedback-card feedback-card--${om.cls}`}>
                 <div className="feedback-card__top">
                   <span className="feedback-card__emoji">{b.emoji}</span>
-                  <span className="feedback-card__name">{b.name}</span>
-                  <span className={`risk-pill risk-pill--${b.trueRisk}`}>
-                    {b.trueRisk} risk
+                  <span className="feedback-card__name">
+                    {b.name}
+                    <span className="feedback-card__route">{b.route}</span>
+                  </span>
+                  <span className={`outcome-pill outcome-pill--${om.cls}`}>
+                    {om.emoji} {b.outcome}
                   </span>
                 </div>
                 <p className="feedback-card__reason">{b.reason}</p>
-                <p className={`feedback-card__use feedback-card__use--${use.cls}`}>
-                  {use.text}
-                </p>
+                {b.trueRisk === 'high' && (
+                  <p className={`feedback-card__match ${matched ? 'is-hit' : 'is-miss'}`}>
+                    Your hunch: {reasonLabel(picked)} —{' '}
+                    {matched
+                      ? 'spot on, that was the real driver! ✓'
+                      : `the real driver was “${b.factors[0]}”.`}
+                  </p>
+                )}
+                <p className={`feedback-card__use feedback-card__use--${use.cls}`}>{use.text}</p>
               </div>
             )
           })}
         </div>
 
         {/* Missed high-risk bridges */}
-        {missedHigh.length > 0 && (
+        {r.missedHigh.length > 0 && (
           <>
             <h3 className="results-section-title">Missed Clues 🔍</h3>
             <div className="feedback-cards">
-              {missedHigh.map((b) => (
+              {r.missedHigh.map((b) => (
                 <div key={b.id} className="feedback-card feedback-card--missed">
                   <div className="feedback-card__top">
                     <span className="feedback-card__emoji">{b.emoji}</span>
-                    <span className="feedback-card__name">{b.name}</span>
-                    <span className="risk-pill risk-pill--high">high risk</span>
+                    <span className="feedback-card__name">
+                      {b.name}
+                      <span className="feedback-card__route">{b.route}</span>
+                    </span>
+                    <span className="outcome-pill outcome-pill--collapsed">
+                      {(outcomeMeta[b.outcome] || {}).emoji} {b.outcome}
+                    </span>
                   </div>
                   <p className="feedback-card__reason">
-                    <strong>Missed clue:</strong> {b.name} looked normal, but {b.reason}{' '}
-                    In catastrophe modeling, importance is not always visible.
+                    <strong>Missed:</strong> {b.reason}
                   </p>
                 </div>
               ))}
@@ -113,29 +161,61 @@ export default function ResultsModal({ bridges, selectedIds, onPlayAgain, onClos
           </>
         )}
 
+        {/* Real-event insights */}
+        <h3 className="results-section-title">What Northridge Taught Us 🎓</h3>
+        <div className="insight-cards">
+          <div className="insight-card">
+            <span className="insight-card__icon">🎭</span>
+            <p>
+              <strong>Looks can deceive.</strong> The La Cienega–Venice bridge collapsed
+              under only <em>moderate</em> shaking — its 1960s design and sharp angle, not
+              strong ground motion, brought it down. A shaking map alone would have
+              under-rated it.
+            </p>
+          </div>
+          <div className="insight-card">
+            <span className="insight-card__icon">💸</span>
+            <p>
+              <strong>A few failures dominate.</strong> Just 6 bridges collapsed out of
+              3,500+ (~0.17%) — yet they caused about <strong>69%</strong> of all bridge
+              repair costs. Predicting <em>which</em> failures matter most is its own skill.
+            </p>
+          </div>
+          <div className="insight-card">
+            <span className="insight-card__icon">🚑</span>
+            <p>
+              <strong>Importance is invisible.</strong> The hospital link wasn't the weakest
+              bridge — but it was the only route for ambulances. Consequence is not the same
+              as fragility.
+            </p>
+          </div>
+        </div>
+
         {/* Week 1 lesson */}
         <div className="lesson-box">
-          <h3 className="lesson-box__title">🎓 Week 1 Lesson</h3>
+          <h3 className="lesson-box__title">📘 Week 1 Lesson</h3>
           <p>
-            Early disaster decisions are often made with incomplete information. Visual
-            clues help, but they can be misleading. <strong>Catastrophe modeling</strong>{' '}
-            helps us add better layers of evidence over time.
+            Early disaster decisions are made with incomplete information. Visual clues help,
+            but they can mislead — and the bridges that matter most aren't always the ones
+            that look worst. <strong>Catastrophe modeling</strong> lets us add better layers
+            of evidence, one week at a time.
           </p>
         </div>
 
         {/* Teaser */}
         <div className="week2-teaser">
-          <span className="week2-teaser__emoji">🔒</span>
+          <span className="week2-teaser__emoji">🔓</span>
           <p>
-            <strong>Next week,</strong> you'll unlock real data layers like shaking
-            intensity, bridge age, and vulnerability!
+            <strong>Next week,</strong> you'll unlock the real <strong>shaking-intensity
+            map</strong> — and start replacing hunches with data: bridge age, ground type,
+            and vulnerability.
           </p>
         </div>
 
         {/* Actions */}
         <div className="modal__actions">
           <button className="btn btn--primary" onClick={onPlayAgain}>
-            🔁 Play again
+            🔁 Run the drill again
           </button>
           <button className="btn btn--locked" disabled>
             🔒 Continue to Week 2 — Coming soon
