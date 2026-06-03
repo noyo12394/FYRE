@@ -40,6 +40,27 @@ npm run build
 npm run preview
 ```
 
+## ▲ Deploying to Vercel
+
+The repo is import-ready (`vercel.json`, Vite preset, `dist` output). A GitHub
+Actions workflow at `.github/workflows/deploy.yml` deploys to **production on
+every push to `main`** — once you opt in:
+
+1. **Create the Vercel project** and link it locally once to get the IDs:
+   ```bash
+   npm i -g vercel
+   vercel link        # creates .vercel/project.json with orgId + projectId
+   ```
+2. In GitHub → **Settings → Secrets and variables → Actions**:
+   - Add **secrets**: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+   - Add a **variable**: `ENABLE_VERCEL_DEPLOY` = `true`
+3. Push to `main` (or run the workflow manually via **Actions → Deploy to
+   Vercel → Run workflow**).
+
+Until `ENABLE_VERCEL_DEPLOY` is set, the workflow skips cleanly — no failed
+checks. Prefer zero config? Just **Import Project** at vercel.com and Vercel
+auto-detects Vite and deploys on every push (no workflow needed).
+
 ## 🧱 Project structure
 
 ```
