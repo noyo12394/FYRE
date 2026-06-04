@@ -1362,3 +1362,90 @@ body {
   text-align: right;
 }
 @media (max-width: 720px) { .seismograph { display: none; } }
+
+/* =========================================================
+   PROFESSIONAL THEME PASS — refined slate/teal palette,
+   smaller bridges, calmer chrome.
+   ========================================================= */
+
+/* Retheme shared design tokens (later :root wins) */
+:root {
+  --pink: #34698f;
+  --pink-soft: #e3e9f0;
+  --peach: #ded7c7;
+  --mint: #cfe0db;
+  --mint-deep: #5fa48f;
+  --sky: #d3e1ec;
+  --sky-deep: #5a8aad;
+  --lav: #d3d8e3;
+  --yellow: #e9e0cc;
+  --cream: #fbfaf7;
+  --ink: #2b3543;
+  --ink-soft: #687481;
+  --shadow: 0 12px 28px rgba(40, 55, 75, 0.14);
+  --shadow-soft: 0 6px 16px rgba(40, 55, 75, 0.10);
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #eaf1f6 0%, transparent 60%),
+    linear-gradient(170deg, #f5f7fa 0%, #eef2f6 55%, #f1f4f3 100%);
+}
+
+/* Header: deep, confident slate → teal */
+.header {
+  background: linear-gradient(120deg, #243b57 0%, #2f6c93 55%, #2f9e8f 100%);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+.header__title { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.22); letter-spacing: 0.3px; }
+.header__eyebrow { color: rgba(255, 255, 255, 0.85); }
+
+/* Calmer floaties */
+.floaty { opacity: 0.5; }
+.floaty--2 { font-size: 26px; }
+
+/* Primary action: professional teal */
+.btn--primary {
+  background: linear-gradient(120deg, #2f6c93, #2a8f86);
+  box-shadow: 0 5px 0 #1f5d6c;
+}
+.btn--primary:active:not(:disabled) { box-shadow: 0 2px 0 #1f5d6c; }
+
+/* Cards read as crisp panels, not candy */
+.mission-panel__card,
+.locked-modules,
+.story-panel__bubble {
+  border-width: 1px;
+  border-color: #e4e8ee;
+}
+.story-panel__bubble::before { border-right-color: #e4e8ee; }
+.story-panel__avatar { border-width: 2px; border-color: #d8dee7; }
+.mission-panel__card { border-top: 3px solid var(--mint-deep); }
+
+/* Headings: slightly tighter, less bubbly */
+.mission-panel__title,
+.locked-modules__title,
+.modal__title { letter-spacing: 0.2px; }
+
+/* ---- Smaller, tidier bridges (more breathing room) ---- */
+.bridge { padding: 2px; }
+.bridge__art {
+  transform: scale(0.66);
+  transform-origin: 50% 72%;
+  transition: transform 0.18s ease;
+}
+.bridge:hover { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); }
+.bridge:hover .bridge__art { transform: scale(0.78); }
+.bridge--selected::before {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+}
+.bridge__emoji { top: -14px; font-size: 17px; }
+.bridge__check { top: -12px; right: -6px; font-size: 16px; }
+
+/* Tooltip: cleaner, less rounded */
+.bridge__tooltip { border-width: 1.5px; border-color: #cfd6e2; border-radius: 10px; }
+
+/* Map cartouche / labels: a touch more cartographic */
+.map-cartouche strong { letter-spacing: 1.4px; }
