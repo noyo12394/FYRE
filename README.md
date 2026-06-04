@@ -1,8 +1,16 @@
-# 🌉 QuakeQuest: Bridge Triage — Week 1 (1994 Northridge)
+# 🌉 QuakeQuest: Bridge Triage — Week 1 (Bethlehem, PA drill)
 
 A polished, playful-yet-professional browser mini-game for **Week 1** of a
-first-year undergraduate **catastrophe modeling** module, set during the real
-**1994 Northridge earthquake** (Mw 6.7, San Fernando Valley).
+first-year undergraduate **catastrophe modeling** module. It's set as a
+**Lehigh Valley earthquake drill** on a stylized-but-realistic street map of
+**Bethlehem, PA** (home of Lehigh University) — with the real Lehigh River
+crossings as the playable bridges, and the real **1994 Northridge** damage
+record kept in the debrief as historical evidence.
+
+The map draws itself in on load, the Lehigh River flows, a seismic shockwave
+radiates from the epicenter, an animated seismograph runs in the header, and
+flagged bridges glow — with compass rose, scale bar, and neighborhood labels
+for a real-map feel.
 
 > _"It's 4:31 a.m., January 17, 1994. A hidden-fault earthquake just struck
 > beneath the San Fernando Valley. You're the resilience planner in the
