@@ -113,8 +113,8 @@ export default function App() {
       </main>
 
       <footer className="app__footer">
-        QuakeQuest · Week 1 · A catastrophe-modeling field module · Based on the
-        1994 Northridge earthquake
+        QuakeQuest · Week 1 · A catastrophe-modeling field module · Bethlehem, PA
+        earthquake drill <span className="app__build">· build v1.1</span>
       </footer>
 
       {showConfetti && <Confetti />}
