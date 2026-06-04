@@ -17,12 +17,17 @@ export default function App() {
   const [shake, setShake] = useState(false)
   const [toast, setToast] = useState('')
 
-  // A brief opening "aftershock" shudder of the map to set the scene.
+  // Trigger the opening "aftershock" shudder once on mount.
   useEffect(() => {
     setShake(true)
+  }, [])
+
+  // Whenever a shake is triggered (mount or dispatch), clear it shortly after.
+  useEffect(() => {
+    if (!shake) return
     const t = setTimeout(() => setShake(false), 1200)
     return () => clearTimeout(t)
-  }, [])
+  }, [shake])
 
   useEffect(() => {
     if (!toast) return
@@ -61,8 +66,10 @@ export default function App() {
 
   const handleSubmit = useCallback(() => {
     if (selectedIds.length === 0) return
-    setShowResults(true)
+    setShake(true)
     setShowConfetti(true)
+    // Let the dramatic shake play briefly before the debrief slides in.
+    setTimeout(() => setShowResults(true), 650)
   }, [selectedIds])
 
   const handlePlayAgain = useCallback(() => {

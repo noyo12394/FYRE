@@ -1092,3 +1092,273 @@ body {
   margin-top: 3px;
   line-height: 1.2;
 }
+
+/* =========================================================
+   BETHLEHEM, PA — realistic map skin + impressive animations
+   ========================================================= */
+
+/* Map shell: realistic paper-map land tone */
+.city-map {
+  background: #eef0e6;
+  box-shadow: var(--shadow), inset 0 0 60px rgba(120, 130, 90, 0.12);
+}
+
+/* Draw-on effect (uses pathLength="1" so it's length-independent) */
+.draw-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: drawIn 1.5s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+@keyframes drawIn { to { stroke-dashoffset: 0; } }
+
+/* Greens, ridges, blocks */
+.map-green { fill: #cfe3b6; opacity: 0.9; }
+.map-ridge { fill: #cbe0ad; opacity: 0.85; }
+.map-ridge--far { fill: #bcd79a; opacity: 0.7; }
+.map-block { fill: #e2ddcf; stroke: #d6cdb8; stroke-width: 0.15; opacity: 0.85; }
+
+/* Streets */
+.map-street { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.map-street--minor { stroke: #ffffff; stroke-width: 0.7; opacity: 0.95; }
+.map-street--major-casing { stroke: #e7b96b; stroke-width: 2.6; opacity: 0.55; }
+.map-street--major { stroke: #ffffff; stroke-width: 1.7; }
+
+/* Railroad */
+.map-rail-bed { fill: none; stroke: #9a8f7c; stroke-width: 1.1; }
+.map-rail-ties {
+  fill: none;
+  stroke: #6f6555;
+  stroke-width: 1.1;
+  stroke-dasharray: 0.4 0.7;
+}
+
+/* Water */
+.map-creek { fill: none; stroke: #8fc9ea; stroke-width: 1.4; stroke-linecap: round; opacity: 0.9; }
+.map-river-base {
+  fill: none;
+  stroke: url(#riverGrad);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.map-river-flow {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 2 5;
+  animation: riverFlow 3.2s linear infinite;
+}
+@keyframes riverFlow { to { stroke-dashoffset: -28; } }
+.map-island { fill: #d9e6bd; stroke: #c7d8a4; stroke-width: 0.2; }
+
+/* Shaking field gently breathes */
+.map-shakefield { animation: shakePulse 3.4s ease-in-out infinite; transform-origin: center; }
+@keyframes shakePulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+
+.map-crack { stroke: #9a6db0; stroke-width: 0.8; opacity: 0.85; }
+
+/* ----- Overlay labels ----- */
+.map-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+
+.map-label {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--lrot, 0deg));
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: rgba(90, 80, 70, 0.62);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.map-label small { font-size: 7px; letter-spacing: 1px; opacity: 0.8; font-weight: 700; }
+.map-label--river { color: #3f8fc0; font-style: italic; letter-spacing: 2px; text-transform: uppercase; }
+.map-label--creek { color: #5aa6cf; font-style: italic; font-size: 7.5px; }
+.map-label--ridge { color: #6f8f4d; letter-spacing: 2px; }
+.map-label--district { font-size: 9.5px; }
+
+.street-label {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--srot, 0deg));
+  font-size: 6.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #9a8a6f;
+  text-shadow: 0 1px 0 #fff;
+  white-space: nowrap;
+}
+
+/* ----- Landmarks ----- */
+.landmark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  animation: landmarkPop 0.5s ease backwards;
+}
+.landmark__icon {
+  font-size: 19px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.22));
+}
+.landmark__name {
+  font-size: 7px;
+  font-weight: 800;
+  color: #5a5044;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0 3px;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 #fff;
+}
+.landmark--steel .landmark__icon { font-size: 24px; animation: smoke 4s ease-in-out infinite; }
+.landmark--lehigh .landmark__icon,
+.landmark--hist .landmark__icon { font-size: 21px; }
+.landmark--small .landmark__icon { font-size: 14px; }
+.landmark--small .landmark__name { display: none; }
+@keyframes landmarkPop { from { opacity: 0; transform: translate(-50%, -40%) scale(0.6); } }
+@keyframes smoke { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-2px) rotate(2deg); } }
+
+/* ----- Seismic shockwave from epicenter ----- */
+.shockwave {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 70, 70, 0.5);
+  animation: shockwave 3.6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+@keyframes shockwave {
+  0% { transform: scale(0.3); opacity: 0.9; border-width: 3px; }
+  70% { opacity: 0.18; }
+  100% { transform: scale(16); opacity: 0; border-width: 0.5px; }
+}
+
+/* ----- Map chrome: compass, scale, cartouche ----- */
+.map-compass {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+  z-index: 5;
+}
+.compass-ring { fill: rgba(255, 255, 255, 0.85); stroke: #b9ad95; stroke-width: 1.5; }
+.compass-n { fill: #e8533b; }
+.compass-s { fill: #8a8275; }
+.compass-label { fill: #6f6555; font-size: 8px; font-weight: 800; text-anchor: middle; }
+
+.map-scale {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 5;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 6px 3px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+}
+.map-scale__bar { display: flex; width: 64px; height: 6px; border: 1.5px solid #6f6555; border-radius: 2px; overflow: hidden; }
+.map-scale__bar span { flex: 1; }
+.map-scale__bar span:nth-child(odd) { background: #6f6555; }
+.map-scale__text { font-size: 7px; font-weight: 800; color: #6f6555; margin-top: 1px; letter-spacing: 0.5px; }
+
+.map-cartouche {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.86);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 6px 12px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.map-cartouche strong { font-family: 'Baloo 2', sans-serif; font-size: 13px; letter-spacing: 1px; color: var(--ink); }
+.map-cartouche span { font-size: 8.5px; font-weight: 800; letter-spacing: 0.5px; color: var(--ink-soft); text-transform: uppercase; }
+
+/* Bridges sit above labels */
+.city-map__bridges { z-index: 4; }
+
+/* Stronger, more impressive bridge states */
+.bridge:hover { filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.28)); }
+.bridge--selected {
+  filter: drop-shadow(0 0 12px #ffd34d) drop-shadow(0 0 4px #ff9f43);
+}
+.bridge--selected::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,211,77,0.45), transparent 70%);
+  animation: selGlow 1.4s ease-in-out infinite;
+  z-index: -1;
+}
+@keyframes selGlow { 0%, 100% { transform: scale(0.8); opacity: 0.7; } 50% { transform: scale(1.25); opacity: 1; } }
+
+/* Map shake — a touch more violent for drama */
+.city-map--shake { animation: mapShake 0.4s ease-in-out 3; }
+@keyframes mapShake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  15% { transform: translate(-4px, 2px) rotate(-0.4deg); }
+  30% { transform: translate(4px, -3px) rotate(0.4deg); }
+  45% { transform: translate(-3px, 3px) rotate(-0.3deg); }
+  60% { transform: translate(3px, 2px) rotate(0.3deg); }
+  75% { transform: translate(-2px, -2px); }
+}
+
+/* ----- Header seismograph ----- */
+.seismograph {
+  position: relative;
+  width: 150px;
+  flex: 0 0 auto;
+  background: rgba(20, 24, 40, 0.82);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 6px 8px 4px;
+  box-shadow: var(--shadow-soft);
+}
+.seismograph svg { width: 100%; height: 40px; display: block; }
+.seismo-baseline { stroke: rgba(120, 200, 160, 0.3); stroke-width: 0.6; }
+.seismo-trace {
+  fill: none;
+  stroke: #4ee39a;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px rgba(78, 227, 154, 0.8));
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: seismoSweep 2.4s linear infinite;
+}
+@keyframes seismoSweep {
+  0% { stroke-dashoffset: 1; }
+  60% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+.seismograph__mag {
+  display: block;
+  margin-top: 2px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #8af0c0;
+  text-align: right;
+}
+@media (max-width: 720px) { .seismograph { display: none; } }

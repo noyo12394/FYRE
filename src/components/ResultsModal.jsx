@@ -1,5 +1,23 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { REASON_OPTIONS } from '../data/bridges.js'
+
+// Small animated number that counts up from 0 to `value` for a bit of flair.
+function CountUp({ value, duration = 900 }) {
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    let raf
+    const start = performance.now()
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setN(Math.round(eased * value))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [value, duration])
+  return <>{n}</>
+}
 
 const reasonLabel = (id) => {
   const r = REASON_OPTIONS.find((o) => o.id === id)
@@ -21,6 +39,8 @@ function scoreSelection(bridges, selectedIds, reasons) {
   const reasoningHits = highSelected.filter(
     (b) => (reasons[b.id] || 'hunch') === b.primaryFactor,
   )
+  const totalCollapses = bridges.filter((b) => b.outcome === 'Collapsed').length
+  const totalHigh = bridges.filter((b) => b.trueRisk === 'high').length
 
   const points = highSelected.length * 2 + mediumSelected.length + reasoningHits.length
 
@@ -45,6 +65,8 @@ function scoreSelection(bridges, selectedIds, reasons) {
     missedCollapses,
     missedHigh,
     reasoningHits,
+    totalCollapses,
+    totalHigh,
     label,
   }
 }
@@ -83,19 +105,19 @@ export default function ResultsModal({ bridges, selectedIds, reasons, onPlayAgai
         {/* Quick stats */}
         <div className="results-stats">
           <div className="results-stat results-stat--high">
-            <span className="results-stat__num">{r.collapsesCaught.length}<span className="results-stat__den">/4</span></span>
+            <span className="results-stat__num"><CountUp value={r.collapsesCaught.length} /><span className="results-stat__den">/{r.totalCollapses}</span></span>
             <span className="results-stat__cap">Collapses caught</span>
           </div>
           <div className="results-stat results-stat--medium">
-            <span className="results-stat__num">{r.highSelected.length}<span className="results-stat__den">/5</span></span>
+            <span className="results-stat__num"><CountUp value={r.highSelected.length} /><span className="results-stat__den">/{r.totalHigh}</span></span>
             <span className="results-stat__cap">High-risk flagged</span>
           </div>
           <div className="results-stat results-stat--reason">
-            <span className="results-stat__num">{r.reasoningHits.length}</span>
+            <span className="results-stat__num"><CountUp value={r.reasoningHits.length} /></span>
             <span className="results-stat__cap">Reasons that matched</span>
           </div>
           <div className="results-stat results-stat--missed">
-            <span className="results-stat__num">{r.missedCollapses.length}</span>
+            <span className="results-stat__num"><CountUp value={r.missedCollapses.length} /></span>
             <span className="results-stat__cap">Collapses missed</span>
           </div>
         </div>
@@ -162,7 +184,7 @@ export default function ResultsModal({ bridges, selectedIds, reasons, onPlayAgai
         )}
 
         {/* Real-event insights */}
-        <h3 className="results-section-title">What Northridge Taught Us 🎓</h3>
+        <h3 className="results-section-title">What Real Earthquakes Teach Us 🎓</h3>
         <div className="insight-cards">
           <div className="insight-card">
             <span className="insight-card__icon">🎭</span>
