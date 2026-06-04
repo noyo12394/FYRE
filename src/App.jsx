@@ -114,7 +114,7 @@ export default function App() {
 
       <footer className="app__footer">
         QuakeQuest · Week 1 · A catastrophe-modeling field module · Bethlehem, PA
-        earthquake drill <span className="app__build">· build v1.1</span>
+        earthquake drill <span className="app__build">· build v1.2</span>
       </footer>
 
       {showConfetti && <Confetti />}
