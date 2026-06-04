@@ -1430,12 +1430,12 @@ body {
 /* ---- Smaller, tidier bridges (more breathing room) ---- */
 .bridge { padding: 2px; }
 .bridge__art {
-  transform: scale(0.66);
+  transform: scale(0.54);
   transform-origin: 50% 72%;
   transition: transform 0.18s ease;
 }
 .bridge:hover { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); }
-.bridge:hover .bridge__art { transform: scale(0.78); }
+.bridge:hover .bridge__art { transform: scale(0.66); }
 .bridge--selected::before {
   width: 34px;
   height: 34px;
