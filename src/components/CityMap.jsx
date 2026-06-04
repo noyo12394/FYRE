@@ -240,6 +240,6 @@ const LANDMARKS = [
   { emoji: '🏭', label: 'SteelStacks', x: 50, y: 73, cls: 'landmark--steel' },
   { emoji: '🎰', label: 'Wind Creek', x: 60, y: 73 },
   { emoji: '🎓', label: 'Lehigh University', x: 72, y: 78, cls: 'landmark--lehigh' },
-  { emoji: '🏥', label: "St. Luke's", x: 13, y: 64 },
+  { emoji: '🏥', label: "St. Luke's", x: 8, y: 68 },
   { emoji: '🌳', label: 'Sand Island', x: 40, y: 57, cls: 'landmark--small' },
 ]

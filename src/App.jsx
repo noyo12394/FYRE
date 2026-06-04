@@ -84,9 +84,7 @@ export default function App() {
       <div className="floaties" aria-hidden="true">
         <span className="floaty floaty--1">🌥️</span>
         <span className="floaty floaty--2">🚁</span>
-        <span className="floaty floaty--3">🎈</span>
-        <span className="floaty floaty--4">☀️</span>
-        <span className="floaty floaty--5">🐦</span>
+        <span className="floaty floaty--4">🌤️</span>
       </div>
 
       <Header />
