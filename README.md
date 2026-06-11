@@ -80,6 +80,41 @@ Until `ENABLE_VERCEL_DEPLOY` is set, the workflow skips cleanly — no failed
 checks. Prefer zero config? Just **Import Project** at vercel.com and Vercel
 auto-detects Vite and deploys on every push (no workflow needed).
 
+## 📝 Collecting student responses (instructor setup)
+
+Students enter their name, and every dispatch is recorded. Two layers:
+
+1. **Class database (Supabase, recommended).** Serverless functions in `api/`
+   store each response and export a CSV:
+   - Create a free project at [supabase.com](https://supabase.com), then in the
+     SQL editor run:
+     ```sql
+     create table quake_responses (
+       id uuid primary key default gen_random_uuid(),
+       created_at timestamptz default now(),
+       student text not null,
+       score_label text,
+       collapses_caught int,
+       high_flagged int,
+       reasoning_hits int,
+       missed_collapses int,
+       selections jsonb
+     );
+     ```
+   - In Vercel → Project → **Settings → Environment Variables**, add:
+     - `SUPABASE_URL` — your project URL (Settings → API)
+     - `SUPABASE_SERVICE_ROLE_KEY` — the `service_role` key (server-side only)
+     - `EXPORT_KEY` — any secret string you choose
+   - Redeploy. Responses now flow into Supabase, and the CSV downloads from:
+     `https://<your-site>/api/export?key=<EXPORT_KEY>`
+
+2. **Local fallback (zero setup).** Every response is also saved in the
+   browser's localStorage. The footer link *"Instructor: download responses
+   from this device (CSV)"* exports them — handy for a lab session on one
+   machine even before Supabase is configured. The results screen tells the
+   student whether their response reached the class database or was saved
+   locally.
+
 ## 🧱 Project structure
 
 ```

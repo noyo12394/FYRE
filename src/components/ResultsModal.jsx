@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { REASON_OPTIONS } from '../data/bridges.js'
+import { scoreSelection } from '../utils/scoring.js'
 
 // Small animated number that counts up from 0 to `value` for a bit of flair.
 function CountUp({ value, duration = 900 }) {
@@ -24,53 +25,6 @@ const reasonLabel = (id) => {
   return r ? `${r.emoji} ${r.label}` : '🤔 Just a hunch'
 }
 
-function scoreSelection(bridges, selectedIds, reasons) {
-  const selected = bridges.filter((b) => selectedIds.includes(b.id))
-  const highSelected = selected.filter((b) => b.trueRisk === 'high')
-  const mediumSelected = selected.filter((b) => b.trueRisk === 'medium')
-  const collapsesCaught = selected.filter((b) => b.outcome === 'Collapsed')
-  const missedCollapses = bridges.filter(
-    (b) => b.outcome === 'Collapsed' && !selectedIds.includes(b.id),
-  )
-  const missedHigh = bridges.filter(
-    (b) => b.trueRisk === 'high' && !selectedIds.includes(b.id),
-  )
-  // Reasoning that matched the real dominant cause (on high-risk picks).
-  const reasoningHits = highSelected.filter(
-    (b) => (reasons[b.id] || 'hunch') === b.primaryFactor,
-  )
-  const totalCollapses = bridges.filter((b) => b.outcome === 'Collapsed').length
-  const totalHigh = bridges.filter((b) => b.trueRisk === 'high').length
-
-  const points = highSelected.length * 2 + mediumSelected.length + reasoningHits.length
-
-  let label
-  if (collapsesCaught.length >= 3 && missedCollapses.length <= 1) {
-    label = 'Sharp triage instincts! 🌟'
-  } else if (points >= 6) {
-    label = 'Strong start, planner! 💪'
-  } else if (points >= 3) {
-    label = 'Solid first read. 📈'
-  } else if (points >= 1) {
-    label = 'A start — real data will sharpen this. 🔍'
-  } else {
-    label = 'The valley needs a closer look! 🧭'
-  }
-
-  return {
-    selected,
-    highSelected,
-    mediumSelected,
-    collapsesCaught,
-    missedCollapses,
-    missedHigh,
-    reasoningHits,
-    totalCollapses,
-    totalHigh,
-    label,
-  }
-}
-
 const outcomeMeta = {
   Collapsed: { cls: 'collapsed', emoji: '💥' },
   'Major damage': { cls: 'major', emoji: '🟠' },
@@ -86,7 +40,13 @@ function usefulness(b) {
   return { text: 'Lower priority this time.', cls: 'meh' }
 }
 
-export default function ResultsModal({ bridges, selectedIds, reasons, onPlayAgain, onClose }) {
+const SAVE_STATUS_TEXT = {
+  saving: '⏳ Recording your response…',
+  cloud: '✓ Response recorded for your instructor.',
+  local: '✓ Saved on this device (class database not connected).',
+}
+
+export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus, onPlayAgain, onClose }) {
   const r = scoreSelection(bridges, selectedIds, reasons)
 
   return (
@@ -233,6 +193,12 @@ export default function ResultsModal({ bridges, selectedIds, reasons, onPlayAgai
             and vulnerability.
           </p>
         </div>
+
+        {saveStatus && (
+          <p className={`save-status save-status--${saveStatus}`}>
+            {SAVE_STATUS_TEXT[saveStatus] || ''}
+          </p>
+        )}
 
         {/* Actions */}
         <div className="modal__actions">
