@@ -1,9 +1,10 @@
 import React from 'react'
 
 // Briefing-style title bar with a live animated seismograph trace. Friendly but
-// professional. Our field-guide mascot, PGA Pal, stays — but we don't explain
-// what "PGA" means yet (that's Week 2).
-export default function Header() {
+// professional. The eyebrow, title, and subtitle come from the active week's
+// config so the same bar reframes itself as the course advances.
+export default function Header({ week }) {
+  const w = week || {}
   return (
     <header className="header">
       <div className="header__mascot" title="Hi, I'm PGA Pal — your field guide!">
@@ -14,9 +15,9 @@ export default function Header() {
       </div>
 
       <div className="header__titles">
-        <p className="header__eyebrow">Catastrophe Modeling · Week 1 Field Module</p>
-        <h1 className="header__title">QuakeQuest: Bridge Triage</h1>
-        <p className="header__subtitle">Lehigh Valley Earthquake Drill · Bethlehem, PA</p>
+        <p className="header__eyebrow">{w.eyebrow || 'Catastrophe Modeling · Field Module'}</p>
+        <h1 className="header__title">QuakeQuest: {w.name || 'Bridge Triage'}</h1>
+        <p className="header__subtitle">{w.subtitle || 'Lehigh Valley Earthquake Drill · Bethlehem, PA'}</p>
       </div>
 
       {/* Animated seismograph */}

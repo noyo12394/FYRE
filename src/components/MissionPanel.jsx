@@ -10,6 +10,7 @@ export default function MissionPanel({
   selectedIds,
   reasons,
   studentName,
+  week,
   onNameChange,
   onToggle,
   onSetReason,
@@ -17,18 +18,17 @@ export default function MissionPanel({
 }) {
   const selectedBridges = bridges.filter((b) => selectedIds.includes(b.id))
   const remaining = MAX_SELECTIONS - selectedIds.length
+  const briefText = ((week && week.brief) || 'Flag up to {MAX} bridges for the first inspection wave.')
+    .replace('{MAX}', MAX_SELECTIONS)
 
   return (
     <aside className="mission-panel" aria-label="Triage panel">
       <div className="mission-panel__card">
         <h2 className="mission-panel__title">
           <span role="img" aria-label="clipboard">📋</span> Triage Brief
+          {week && <span className="mission-panel__week">{week.label}</span>}
         </h2>
-        <p className="mission-panel__text">
-          Flag up to <strong>{MAX_SELECTIONS} bridges</strong> for the first
-          inspection wave. For each, tell us <em>why</em> — your reasoning gets
-          scored too. 🧠
-        </p>
+        <p className="mission-panel__text">{briefText}</p>
 
         <label className="student-field">
           <span className="student-field__label">Planner on duty (your name)</span>

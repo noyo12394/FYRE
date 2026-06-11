@@ -8,6 +8,7 @@ import LockedModules from './components/LockedModules.jsx'
 import Toast from './components/Toast.jsx'
 import Confetti from './components/Confetti.jsx'
 import { bridges, MAX_SELECTIONS } from './data/bridges.js'
+import { getWeek, LAST_WEEK } from './data/weeks.js'
 import { scoreSelection } from './utils/scoring.js'
 
 const LOCAL_KEY = 'quakequest-responses'
@@ -41,7 +42,7 @@ function downloadLocalCsv() {
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
   const header = [
-    'submitted_at', 'student', 'score_label', 'collapses_caught', 'high_flagged',
+    'submitted_at', 'student', 'week', 'score_label', 'collapses_caught', 'high_flagged',
     'reasoning_hits', 'missed_collapses', 'selections',
   ]
   const lines = [header.join(',')]
@@ -50,7 +51,7 @@ function downloadLocalCsv() {
       .map((s) => `${s.name} (${s.reason})`)
       .join('; ')
     lines.push([
-      r.submittedAt, r.student, r.scoreLabel, r.collapsesCaught, r.highFlagged,
+      r.submittedAt, r.student, r.week || 1, r.scoreLabel, r.collapsesCaught, r.highFlagged,
       r.reasoningHits, r.missedCollapses, selections,
     ].map(esc).join(','))
   }
@@ -63,6 +64,7 @@ function downloadLocalCsv() {
 }
 
 export default function App() {
+  const [week, setWeek] = useState(1)
   const [selectedIds, setSelectedIds] = useState([])
   const [reasons, setReasons] = useState({}) // bridgeId -> reasonId
   const [studentName, setStudentName] = useState('')
@@ -71,6 +73,10 @@ export default function App() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [shake, setShake] = useState(false)
   const [toast, setToast] = useState('')
+
+  const weekConfig = getWeek(week)
+  const hasNextWeek = week < LAST_WEEK
+  const nextLabel = hasNextWeek ? getWeek(week + 1).label : null
 
   // Trigger the opening "aftershock" shudder once on mount.
   useEffect(() => {
@@ -130,6 +136,7 @@ export default function App() {
     const score = scoreSelection(bridges, selectedIds, reasons)
     const payload = {
       student: name,
+      week,
       submittedAt: new Date().toISOString(),
       scoreLabel: score.label,
       collapsesCaught: score.collapsesCaught.length,
@@ -156,7 +163,7 @@ export default function App() {
     setShowConfetti(true)
     // Let the dramatic shake play briefly before the debrief slides in.
     setTimeout(() => setShowResults(true), 650)
-  }, [selectedIds, reasons, studentName])
+  }, [selectedIds, reasons, studentName, week])
 
   const handlePlayAgain = useCallback(() => {
     setSelectedIds([])
@@ -166,6 +173,23 @@ export default function App() {
     setShowConfetti(false)
   }, [])
 
+  // Jump to a specific week's drill — clears the current run and re-triggers the
+  // opening shudder so the new briefing lands with a jolt.
+  const goToWeek = useCallback((w) => {
+    setWeek(w)
+    setSelectedIds([])
+    setReasons({})
+    setSaveStatus(null)
+    setShowResults(false)
+    setShowConfetti(false)
+    setShake(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const handleAdvanceWeek = useCallback(() => {
+    if (week < LAST_WEEK) goToWeek(week + 1)
+  }, [week, goToWeek])
+
   return (
     <div className="app">
       <div className="floaties" aria-hidden="true">
@@ -174,10 +198,10 @@ export default function App() {
         <span className="floaty floaty--4">🌤️</span>
       </div>
 
-      <Header />
+      <Header week={weekConfig} />
 
       <main className="app__main">
-        <StoryPanel />
+        <StoryPanel week={weekConfig} />
 
         <div className="app__play-area">
           <CityMap
@@ -185,12 +209,14 @@ export default function App() {
             selectedIds={selectedIds}
             onToggle={toggleBridge}
             showShake={shake}
+            revealsShaking={weekConfig.revealsShaking}
           />
           <MissionPanel
             bridges={bridges}
             selectedIds={selectedIds}
             reasons={reasons}
             studentName={studentName}
+            week={weekConfig}
             onNameChange={setStudentName}
             onToggle={toggleBridge}
             onSetReason={setReason}
@@ -198,12 +224,12 @@ export default function App() {
           />
         </div>
 
-        <LockedModules />
+        <LockedModules currentWeek={week} onGoToWeek={goToWeek} />
       </main>
 
       <footer className="app__footer">
         QuakeQuest · Week 1 · A catastrophe-modeling field module · Bethlehem, PA
-        earthquake drill <span className="app__build">· build v1.4</span>
+        earthquake drill <span className="app__build">· build v1.5</span>
         <button type="button" className="instructor-link" onClick={downloadLocalCsv}>
           Instructor: download responses from this device (CSV)
         </button>
@@ -218,6 +244,10 @@ export default function App() {
           selectedIds={selectedIds}
           reasons={reasons}
           saveStatus={saveStatus}
+          week={weekConfig}
+          hasNext={hasNextWeek}
+          nextLabel={nextLabel}
+          onAdvanceWeek={handleAdvanceWeek}
           onPlayAgain={handlePlayAgain}
           onClose={() => setShowResults(false)}
         />

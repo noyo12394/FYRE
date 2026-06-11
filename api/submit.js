@@ -30,6 +30,7 @@ export default async function handler(req, res) {
 
   const row = {
     student: String(b.student).slice(0, 120),
+    week: Number(b.week) || 1,
     score_label: String(b.scoreLabel || '').slice(0, 120),
     collapses_caught: Number(b.collapsesCaught) || 0,
     high_flagged: Number(b.highFlagged) || 0,

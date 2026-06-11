@@ -19,10 +19,26 @@ export const REASON_OPTIONS = [
   { id: 'old', label: 'Looks old', emoji: '🧱' },
   { id: 'shape', label: 'Odd shape / long span', emoji: '📐' },
   { id: 'epicenter', label: 'Near the epicenter', emoji: '🎯' },
+  { id: 'shaking', label: 'Strong-shaking zone', emoji: '📳' },
   { id: 'soft', label: 'Soft riverbank ground', emoji: '💧' },
   { id: 'lifeline', label: 'Critical lifeline', emoji: '🚑' },
   { id: 'hunch', label: 'Just a hunch', emoji: '🤔' },
 ]
+
+// Week 2 shaking-intensity tiers (a teaching stand-in for a ShakeMap / PGA
+// field). Ordered strongest → weakest. Colors drive the map heat overlay and
+// the per-bridge shaking chips.
+export const SHAKE_ZONES = [
+  { key: 'severe', label: 'Severe', color: '#ff4d4d' },
+  { key: 'strong', label: 'Strong', color: '#ff8a3d' },
+  { key: 'moderate', label: 'Moderate', color: '#ffce4d' },
+  { key: 'light', label: 'Light', color: '#9fd98a' },
+]
+
+export const SHAKE_META = SHAKE_ZONES.reduce((m, z) => {
+  m[z.key] = z
+  return m
+}, {})
 
 // Drill epicenter: South Side, near the old steel works / South Mountain front.
 export const EPICENTER = { x: 52, y: 71 }
@@ -40,6 +56,7 @@ export const bridges = [
     outcome: 'Major damage',
     primaryFactor: 'old',
     clue: 'Big 1920s multi-span arch',
+    shaking: { zone: 'moderate', level: 3, pga: '0.34g' },
     factors: ['Built in 1924', 'Long, complex multi-span concrete arches', 'Carries PA-378 — the main downtown lifeline'],
     reason:
       "Bethlehem's iconic 1924 bridge is large and structurally complex, and it's the primary route between the North and South Sides — both fragile and indispensable.",
@@ -58,6 +75,7 @@ export const bridges = [
     outcome: 'Major damage',
     primaryFactor: 'old',
     clue: 'Tall aging steel truss',
+    shaking: { zone: 'moderate', level: 3, pga: '0.30g' },
     factors: ['1950s steel truss', 'Tall, slender members', 'Older steel is fracture-prone'],
     reason:
       'A tall mid-century steel truss on the East Side. Slender older steel members are prone to buckling and fracture under strong shaking.',
@@ -76,6 +94,7 @@ export const bridges = [
     outcome: 'Collapsed',
     primaryFactor: 'old',
     clue: 'Old stone railroad piers',
+    shaking: { zone: 'strong', level: 4, pga: '0.46g' },
     factors: ['Early-1900s unreinforced masonry piers', 'Brittle stone construction', 'Soft riverbank soils'],
     reason:
       'Century-old unreinforced stone piers on soft riverbank soils. Brittle masonry has little ability to flex — exactly the kind of structure that fails first.',
@@ -94,6 +113,7 @@ export const bridges = [
     outcome: 'Collapsed',
     primaryFactor: 'soft',
     clue: 'Long ramps on soft, low-lying fill',
+    shaking: { zone: 'severe', level: 5, pga: '0.52g' },
     factors: ['Long approach ramps', 'Saturated, soft low-lying fill', 'Right beside the epicenter'],
     reason:
       'Its long approach ramps sit on saturated, soft fill right beside the epicenter. Soft ground can lose strength and flow during strong shaking, dropping the spans.',
@@ -112,6 +132,7 @@ export const bridges = [
     outcome: 'Moderate damage',
     primaryFactor: 'epicenter',
     clue: 'Busy steel girder near downtown',
+    shaking: { zone: 'strong', level: 4, pga: '0.43g' },
     factors: ['1970s steel girders', 'Very heavy daily traffic', 'Close to the epicenter'],
     reason:
       'A busy newer steel girder bridge — but it sits close to the epicenter and carries enormous downtown traffic, so even moderate damage is disruptive.',
@@ -130,6 +151,7 @@ export const bridges = [
     outcome: 'Minor damage',
     primaryFactor: 'lifeline',
     clue: 'The fastest route to the hospital',
+    shaking: { zone: 'light', level: 2, pga: '0.20g' },
     factors: ['Sole quick route to St. Luke’s', 'Looks fairly modern', 'Carries ambulances'],
     reason:
       "It's not the weakest bridge, but it's the fastest ambulance route to St. Luke's — so it must be confirmed open early no matter how it looks.",
@@ -148,6 +170,7 @@ export const bridges = [
     outcome: 'Moderate damage',
     primaryFactor: 'old',
     clue: 'Aging east-end crossing',
+    shaking: { zone: 'light', level: 1, pga: '0.16g' },
     factors: ['Older design', 'Moderate traffic', 'Farther from the epicenter'],
     reason:
       'An aging crossing at the east edge of town. Older, but farther from the strongest shaking, so it fares better than the central bridges.',
@@ -166,6 +189,7 @@ export const bridges = [
     outcome: 'Minor damage',
     primaryFactor: 'hunch',
     clue: 'Light footbridge to the island',
+    shaking: { zone: 'strong', level: 4, pga: '0.40g' },
     factors: ['Light pedestrian structure', 'No vehicle loads', 'Easy to detour'],
     reason:
       'A light footbridge to Sand Island. Low loads and easy detours make it a low priority for the first inspection wave.',
@@ -184,6 +208,7 @@ export const bridges = [
     outcome: 'Undamaged',
     primaryFactor: 'hunch',
     clue: 'Small low creek crossing',
+    shaking: { zone: 'light', level: 1, pga: '0.14g' },
     factors: ['Short, low span', 'Firm creek-bank rock', 'Far from the epicenter'],
     reason:
       'A short, low crossing over the Monocacy Creek on firm ground, well away from the epicenter. It came through fine.',
@@ -202,6 +227,7 @@ export const bridges = [
     outcome: 'Undamaged',
     primaryFactor: 'hunch',
     clue: 'Newer span up on the hillside',
+    shaking: { zone: 'moderate', level: 3, pga: '0.28g' },
     factors: ['Modern, retrofitted design', 'Founded on firm South Mountain rock', 'Alternate campus routes'],
     reason:
       'A modern, retrofitted overpass up on the firm rock of South Mountain. Good design plus solid ground equals low risk.',
