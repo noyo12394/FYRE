@@ -9,6 +9,8 @@ export default function MissionPanel({
   bridges,
   selectedIds,
   reasons,
+  studentName,
+  onNameChange,
   onToggle,
   onSetReason,
   onSubmit,
@@ -27,6 +29,19 @@ export default function MissionPanel({
           inspection wave. For each, tell us <em>why</em> — your reasoning gets
           scored too. 🧠
         </p>
+
+        <label className="student-field">
+          <span className="student-field__label">Planner on duty (your name)</span>
+          <input
+            type="text"
+            className="student-field__input"
+            placeholder="e.g. Jordan Rivera"
+            value={studentName}
+            maxLength={80}
+            onChange={(e) => onNameChange(e.target.value)}
+            autoComplete="name"
+          />
+        </label>
 
         <div className="crew-tracker" aria-label="Inspection crews remaining">
           {Array.from({ length: MAX_SELECTIONS }).map((_, i) => (

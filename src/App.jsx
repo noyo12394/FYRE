@@ -8,10 +8,65 @@ import LockedModules from './components/LockedModules.jsx'
 import Toast from './components/Toast.jsx'
 import Confetti from './components/Confetti.jsx'
 import { bridges, MAX_SELECTIONS } from './data/bridges.js'
+import { scoreSelection } from './utils/scoring.js'
+
+const LOCAL_KEY = 'quakequest-responses'
+
+// Always keep a local copy of every submission. If the class backend (Supabase
+// via /api/submit) is unavailable, this is the source for the instructor's
+// local CSV download.
+function saveLocally(payload) {
+  try {
+    const prev = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]')
+    prev.push(payload)
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(prev))
+  } catch {
+    /* storage unavailable — nothing else to do */
+  }
+}
+
+function downloadLocalCsv() {
+  let rows = []
+  try {
+    rows = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]')
+  } catch {
+    rows = []
+  }
+  if (rows.length === 0) {
+    alert('No responses recorded on this device yet.')
+    return
+  }
+  const esc = (v) => {
+    const s = v == null ? '' : String(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const header = [
+    'submitted_at', 'student', 'score_label', 'collapses_caught', 'high_flagged',
+    'reasoning_hits', 'missed_collapses', 'selections',
+  ]
+  const lines = [header.join(',')]
+  for (const r of rows) {
+    const selections = (r.selections || [])
+      .map((s) => `${s.name} (${s.reason})`)
+      .join('; ')
+    lines.push([
+      r.submittedAt, r.student, r.scoreLabel, r.collapsesCaught, r.highFlagged,
+      r.reasoningHits, r.missedCollapses, selections,
+    ].map(esc).join(','))
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'quakequest_responses_local.csv'
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
 
 export default function App() {
   const [selectedIds, setSelectedIds] = useState([])
   const [reasons, setReasons] = useState({}) // bridgeId -> reasonId
+  const [studentName, setStudentName] = useState('')
+  const [saveStatus, setSaveStatus] = useState(null) // saving | cloud | local
   const [showResults, setShowResults] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [shake, setShake] = useState(false)
@@ -66,15 +121,47 @@ export default function App() {
 
   const handleSubmit = useCallback(() => {
     if (selectedIds.length === 0) return
+    const name = studentName.trim()
+    if (!name) {
+      setToast('Add your name first — your instructor records the answers! ✍️')
+      return
+    }
+
+    const score = scoreSelection(bridges, selectedIds, reasons)
+    const payload = {
+      student: name,
+      submittedAt: new Date().toISOString(),
+      scoreLabel: score.label,
+      collapsesCaught: score.collapsesCaught.length,
+      highFlagged: score.highSelected.length,
+      reasoningHits: score.reasoningHits.length,
+      missedCollapses: score.missedCollapses.length,
+      selections: selectedIds.map((id) => {
+        const b = bridges.find((x) => x.id === id)
+        return { id, name: b ? b.name : id, reason: reasons[id] || 'hunch' }
+      }),
+    }
+
+    saveLocally(payload)
+    setSaveStatus('saving')
+    fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((r) => setSaveStatus(r.ok ? 'cloud' : 'local'))
+      .catch(() => setSaveStatus('local'))
+
     setShake(true)
     setShowConfetti(true)
     // Let the dramatic shake play briefly before the debrief slides in.
     setTimeout(() => setShowResults(true), 650)
-  }, [selectedIds])
+  }, [selectedIds, reasons, studentName])
 
   const handlePlayAgain = useCallback(() => {
     setSelectedIds([])
     setReasons({})
+    setSaveStatus(null)
     setShowResults(false)
     setShowConfetti(false)
   }, [])
@@ -103,6 +190,8 @@ export default function App() {
             bridges={bridges}
             selectedIds={selectedIds}
             reasons={reasons}
+            studentName={studentName}
+            onNameChange={setStudentName}
             onToggle={toggleBridge}
             onSetReason={setReason}
             onSubmit={handleSubmit}
@@ -114,7 +203,10 @@ export default function App() {
 
       <footer className="app__footer">
         QuakeQuest · Week 1 · A catastrophe-modeling field module · Bethlehem, PA
-        earthquake drill <span className="app__build">· build v1.2</span>
+        earthquake drill <span className="app__build">· build v1.3</span>
+        <button type="button" className="instructor-link" onClick={downloadLocalCsv}>
+          Instructor: download responses from this device (CSV)
+        </button>
       </footer>
 
       {showConfetti && <Confetti />}
@@ -125,6 +217,7 @@ export default function App() {
           bridges={bridges}
           selectedIds={selectedIds}
           reasons={reasons}
+          saveStatus={saveStatus}
           onPlayAgain={handlePlayAgain}
           onClose={() => setShowResults(false)}
         />
