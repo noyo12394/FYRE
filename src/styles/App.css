@@ -1812,3 +1812,136 @@ h1, h2, h3, .btn {
   border-radius: 8px;
 }
 .modal::-webkit-scrollbar-track { background: transparent; }
+
+/* =========================================================
+   v1.5 — WEEK 2: SHAKING-INTENSITY LAYER
+   Heat overlay, contour rings, per-bridge shaking chips,
+   week badges, and a roadmap that lets you switch weeks.
+   ========================================================= */
+
+/* ----- Map: full ShakeMap overlay + intensity contours ----- */
+.map-shakefield--strong { animation: shakePulse 3.4s ease-in-out infinite; }
+.map-contour {
+  fill: none;
+  stroke-width: 0.7;
+  opacity: 0.55;
+  stroke-dasharray: 0.5 1.1;
+  animation: drawIn 1.4s cubic-bezier(0.6, 0, 0.2, 1) forwards, contourPulse 4s ease-in-out infinite;
+}
+@keyframes contourPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+/* When the quake layer is live, give the whole console a warmer cast */
+.city-map--quake-layer {
+  box-shadow:
+    0 0 0 6px rgba(8, 13, 26, 0.85),
+    0 0 60px rgba(255, 110, 80, 0.30),
+    0 28px 70px rgba(0, 0, 0, 0.55);
+}
+
+/* ----- Per-bridge shaking chip on the map ----- */
+.bridge__shake {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #0b1322;
+  background: var(--zone, #ffce4d);
+  padding: 1px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 0 0 1.5px rgba(8, 13, 26, 0.7);
+  pointer-events: none;
+  animation: chipPop 0.4s ease backwards;
+}
+.bridge--shaking { z-index: 4; }
+@keyframes chipPop {
+  from { opacity: 0; transform: translate(-50%, -4px) scale(0.6); }
+}
+.bridge__shake-line {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--zone, #ffce4d);
+}
+
+/* Legend scale label for Week 2 */
+.map-legend__scale-label {
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: #4a5666;
+  text-transform: uppercase;
+  font-size: 9.5px;
+}
+
+/* ----- Week badges ----- */
+.mission-panel__week,
+.modal__week {
+  display: inline-block;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--eoc-cyan);
+  background: rgba(56, 225, 212, 0.12);
+  border: 1px solid rgba(56, 225, 212, 0.4);
+  padding: 2px 9px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.mission-panel__week { margin-left: 8px; }
+.modal__week {
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+/* ----- Debrief: shaking chip on feedback cards + new stat ----- */
+.shake-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #0b1322;
+  background: var(--zone, #ffce4d);
+  padding: 2px 9px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(8, 13, 26, 0.45);
+}
+.results-stat--shake {
+  background: rgba(255, 138, 61, 0.14);
+  border-color: rgba(255, 138, 61, 0.4);
+}
+
+/* Secondary "Continue" button styling */
+.btn--next {
+  background: linear-gradient(120deg, var(--eoc-violet), #6f70e8);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(139, 140, 248, 0.5), 0 8px 26px rgba(139, 140, 248, 0.35);
+}
+.btn--next:active:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(139, 140, 248, 0.5), 0 3px 12px rgba(139, 140, 248, 0.3);
+}
+
+/* ----- Roadmap cards become buttons (clickable weeks) ----- */
+.module-card {
+  font-family: inherit;
+  width: 100%;
+  border: none;
+  cursor: default;
+  color: inherit;
+}
+.locked-modules__grid .module-card--open { cursor: pointer; }
+.module-card--open:hover { transform: translateY(-4px) rotate(-1deg); }
+.module-card:disabled { cursor: not-allowed; }
+.module-card--current {
+  outline: 2px solid var(--eoc-cyan);
+  outline-offset: 2px;
+  box-shadow: 0 0 22px rgba(56, 225, 212, 0.35);
+}

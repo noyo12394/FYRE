@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { REASON_OPTIONS } from '../data/bridges.js'
+import { REASON_OPTIONS, SHAKE_META } from '../data/bridges.js'
 import { scoreSelection } from '../utils/scoring.js'
 
 // Small animated number that counts up from 0 to `value` for a bit of flair.
@@ -46,8 +46,38 @@ const SAVE_STATUS_TEXT = {
   local: '✓ Saved on this device (class database not connected).',
 }
 
-export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus, onPlayAgain, onClose }) {
+// Small shaking-intensity chip reused on the feedback cards in Week 2.
+function ShakeChip({ shaking }) {
+  if (!shaking) return null
+  const zone = SHAKE_META[shaking.zone]
+  return (
+    <span className="shake-chip" style={{ '--zone': zone.color }}>
+      📳 {zone.label} · {shaking.pga}
+    </span>
+  )
+}
+
+export default function ResultsModal({
+  bridges,
+  selectedIds,
+  reasons,
+  saveStatus,
+  week,
+  hasNext,
+  nextLabel,
+  onAdvanceWeek,
+  onPlayAgain,
+  onClose,
+}) {
   const r = scoreSelection(bridges, selectedIds, reasons)
+  const revealsShaking = !!(week && week.revealsShaking)
+
+  // Week 2 extra read-out: did the planner concentrate crews where it shook
+  // hardest? (severe/strong tiers). Teaches that shaking is a strong — but
+  // imperfect — guide.
+  const strongPicked = revealsShaking
+    ? r.selected.filter((b) => b.shaking && (b.shaking.zone === 'severe' || b.shaking.zone === 'strong')).length
+    : 0
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Inspection results">
@@ -58,6 +88,7 @@ export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus
 
         <div className="modal__header">
           <div className="modal__mascot" aria-hidden="true">🐿️⛑️</div>
+          {week && <p className="modal__week">{week.label} · {week.name}</p>}
           <h2 className="modal__title">Inspection Debrief</h2>
           <p className="modal__label">{r.label}</p>
         </div>
@@ -72,10 +103,17 @@ export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus
             <span className="results-stat__num"><CountUp value={r.highSelected.length} /><span className="results-stat__den">/{r.totalHigh}</span></span>
             <span className="results-stat__cap">High-risk flagged</span>
           </div>
-          <div className="results-stat results-stat--reason">
-            <span className="results-stat__num"><CountUp value={r.reasoningHits.length} /></span>
-            <span className="results-stat__cap">Reasons that matched</span>
-          </div>
+          {revealsShaking ? (
+            <div className="results-stat results-stat--shake">
+              <span className="results-stat__num"><CountUp value={strongPicked} /><span className="results-stat__den">/{r.selected.length}</span></span>
+              <span className="results-stat__cap">In strong shaking</span>
+            </div>
+          ) : (
+            <div className="results-stat results-stat--reason">
+              <span className="results-stat__num"><CountUp value={r.reasoningHits.length} /></span>
+              <span className="results-stat__cap">Reasons that matched</span>
+            </div>
+          )}
           <div className="results-stat results-stat--missed">
             <span className="results-stat__num"><CountUp value={r.missedCollapses.length} /></span>
             <span className="results-stat__cap">Collapses missed</span>
@@ -102,6 +140,7 @@ export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus
                     {om.emoji} {b.outcome}
                   </span>
                 </div>
+                {revealsShaking && <ShakeChip shaking={b.shaking} />}
                 <p className="feedback-card__reason">{b.reason}</p>
                 {b.trueRisk === 'high' && (
                   <p className={`feedback-card__match ${matched ? 'is-hit' : 'is-miss'}`}>
@@ -134,6 +173,7 @@ export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus
                       {(outcomeMeta[b.outcome] || {}).emoji} {b.outcome}
                     </span>
                   </div>
+                  {revealsShaking && <ShakeChip shaking={b.shaking} />}
                   <p className="feedback-card__reason">
                     <strong>Missed:</strong> {b.reason}
                   </p>
@@ -143,56 +183,32 @@ export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus
           </>
         )}
 
-        {/* Real-event insights */}
+        {/* Real-event insights (week-specific) */}
         <h3 className="results-section-title">What Real Earthquakes Teach Us 🎓</h3>
         <div className="insight-cards">
-          <div className="insight-card">
-            <span className="insight-card__icon">🎭</span>
-            <p>
-              <strong>Looks can deceive.</strong> The La Cienega–Venice bridge collapsed
-              under only <em>moderate</em> shaking — its 1960s design and sharp angle, not
-              strong ground motion, brought it down. A shaking map alone would have
-              under-rated it.
-            </p>
-          </div>
-          <div className="insight-card">
-            <span className="insight-card__icon">💸</span>
-            <p>
-              <strong>A few failures dominate.</strong> Just 6 bridges collapsed out of
-              3,500+ (~0.17%) — yet they caused about <strong>69%</strong> of all bridge
-              repair costs. Predicting <em>which</em> failures matter most is its own skill.
-            </p>
-          </div>
-          <div className="insight-card">
-            <span className="insight-card__icon">🚑</span>
-            <p>
-              <strong>Importance is invisible.</strong> The hospital link wasn't the weakest
-              bridge — but it was the only route for ambulances. Consequence is not the same
-              as fragility.
-            </p>
-          </div>
+          {(week && week.insights ? week.insights : []).map((ins) => (
+            <div key={ins.title} className="insight-card">
+              <span className="insight-card__icon">{ins.icon}</span>
+              <p>
+                <strong>{ins.title}</strong> {ins.body}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Week 1 lesson */}
+        {/* Week lesson */}
         <div className="lesson-box">
-          <h3 className="lesson-box__title">📘 Week 1 Lesson</h3>
-          <p>
-            Early disaster decisions are made with incomplete information. Visual clues help,
-            but they can mislead — and the bridges that matter most aren't always the ones
-            that look worst. <strong>Catastrophe modeling</strong> lets us add better layers
-            of evidence, one week at a time.
-          </p>
+          <h3 className="lesson-box__title">{week ? week.lessonTitle : '📘 Lesson'}</h3>
+          <p>{week ? week.lesson : ''}</p>
         </div>
 
-        {/* Teaser */}
-        <div className="week2-teaser">
-          <span className="week2-teaser__emoji">🔓</span>
-          <p>
-            <strong>Next week,</strong> you'll unlock the real <strong>shaking-intensity
-            map</strong> — and start replacing hunches with data: bridge age, ground type,
-            and vulnerability.
-          </p>
-        </div>
+        {/* Teaser for what's next */}
+        {week && week.teaser && (
+          <div className="week2-teaser">
+            <span className="week2-teaser__emoji">{week.teaser.emoji}</span>
+            <p>{week.teaser.text}</p>
+          </div>
+        )}
 
         {saveStatus && (
           <p className={`save-status save-status--${saveStatus}`}>
@@ -203,11 +219,17 @@ export default function ResultsModal({ bridges, selectedIds, reasons, saveStatus
         {/* Actions */}
         <div className="modal__actions">
           <button className="btn btn--primary" onClick={onPlayAgain}>
-            🔁 Run the drill again
+            🔁 Run {week ? `${week.label} ` : 'the drill '}again
           </button>
-          <button className="btn btn--locked" disabled>
-            🔒 Continue to Week 2 — Coming soon
-          </button>
+          {hasNext ? (
+            <button className="btn btn--primary btn--next" onClick={onAdvanceWeek}>
+              ▶️ Continue to {nextLabel}
+            </button>
+          ) : (
+            <button className="btn btn--locked" disabled>
+              🔒 More weeks — coming soon
+            </button>
+          )}
         </div>
       </div>
     </div>

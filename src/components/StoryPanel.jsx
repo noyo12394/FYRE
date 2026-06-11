@@ -1,31 +1,26 @@
 import React from 'react'
 
-// Briefing panel. Frames the Bethlehem earthquake drill in plain, engaging
-// language — accessible to first-years, grounded in their own city.
-export default function StoryPanel() {
+// Briefing panel. Frames the current week's earthquake drill in plain, engaging
+// language — accessible to first-years, grounded in their own city. Copy is
+// driven by the active week's config so Week 2 reframes around the new
+// shaking-intensity layer.
+export default function StoryPanel({ week }) {
+  const s = (week && week.story) || {}
+  const isWeek2 = week && week.revealsShaking
+
   return (
     <section className="story-panel" aria-label="Mission briefing">
       <div className="story-panel__speech">
         <div className="story-panel__avatar" aria-hidden="true">🐿️⛑️</div>
         <div className="story-panel__bubble">
           <p>
-            <strong>Drill alert:</strong> a rare but possible earthquake has just
-            struck the Lehigh Valley, with its epicenter under the South Side of
-            <strong> Bethlehem</strong>. 🏭〰️
+            <strong>{isWeek2 ? 'Update:' : 'Drill alert:'}</strong> {s.alert}
           </p>
+          <p>{s.role}</p>
           <p>
-            You're the resilience planner in the city's Emergency Operations Center.
-            The Lehigh River splits the city, and every crossing matters — but you
-            have <strong>no engineering data yet</strong>, only the map.
+            <strong>Your call:</strong> {s.call}
           </p>
-          <p>
-            <strong>Your call:</strong> which river bridges get an inspection crew
-            first? Hover each one for a field note, then flag it and tell us why. 🔍🌉
-          </p>
-          <p className="story-panel__hint">
-            ⚠️ The ground shook hardest near the glowing epicenter — but as you'll
-            learn, shaking is only one clue among many.
-          </p>
+          <p className="story-panel__hint">{s.hint}</p>
         </div>
       </div>
     </section>

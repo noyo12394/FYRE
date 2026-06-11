@@ -1,15 +1,15 @@
 import React from 'react'
 import Bridge from './Bridge.jsx'
-import { EPICENTER } from '../data/bridges.js'
+import { EPICENTER, SHAKE_ZONES } from '../data/bridges.js'
 
 // A stylized-but-realistic street map of Bethlehem, PA, drawn entirely with
 // HTML/CSS/SVG (no GIS, no mapbox/leaflet). The Lehigh River separates the
 // historic North Side from the South Side (Lehigh University + SteelStacks).
 // The whole map "draws itself in" on load, the river flows, and a seismic
 // shockwave radiates from the drill epicenter.
-export default function CityMap({ bridges, selectedIds, onToggle, showShake }) {
+export default function CityMap({ bridges, selectedIds, onToggle, showShake, revealsShaking }) {
   return (
-    <div className={`city-map ${showShake ? 'city-map--shake' : ''}`} aria-label="Map of Bethlehem, Pennsylvania">
+    <div className={`city-map ${showShake ? 'city-map--shake' : ''} ${revealsShaking ? 'city-map--quake-layer' : ''}`} aria-label="Map of Bethlehem, Pennsylvania">
       <svg
         className="city-map__scenery"
         viewBox="0 0 100 100"
@@ -22,6 +22,17 @@ export default function CityMap({ bridges, selectedIds, onToggle, showShake }) {
             <stop offset="32%" stopColor="rgba(255,150,86,0.20)" />
             <stop offset="66%" stopColor="rgba(255,205,86,0.07)" />
             <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </radialGradient>
+          {/* Week 2: a much stronger, banded ShakeMap-style field */}
+          <radialGradient id="shakeFieldStrong" cx={`${EPICENTER.x}%`} cy={`${EPICENTER.y}%`} r="64%">
+            <stop offset="0%" stopColor="rgba(255,60,60,0.62)" />
+            <stop offset="22%" stopColor="rgba(255,77,77,0.52)" />
+            <stop offset="23%" stopColor="rgba(255,138,61,0.46)" />
+            <stop offset="44%" stopColor="rgba(255,138,61,0.40)" />
+            <stop offset="45%" stopColor="rgba(255,206,77,0.34)" />
+            <stop offset="68%" stopColor="rgba(255,206,77,0.26)" />
+            <stop offset="69%" stopColor="rgba(159,217,138,0.24)" />
+            <stop offset="100%" stopColor="rgba(159,217,138,0)" />
           </radialGradient>
           <linearGradient id="riverGrad" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#7fc4e8" />
@@ -83,8 +94,26 @@ export default function CityMap({ bridges, selectedIds, onToggle, showShake }) {
         {/* Sand Island */}
         <path d="M24 60.8 Q31 59.4 38 60.6 Q31 62.4 24 61.6 Z" className="map-island" />
 
-        {/* Shaking intensity field */}
+        {/* Shaking intensity field (baseline, both weeks) */}
         <rect x="0" y="0" width="100" height="100" fill="url(#shakeField)" className="map-shakefield" />
+
+        {/* Week 2: full ShakeMap overlay + intensity contour rings */}
+        {revealsShaking && (
+          <g className="map-shakemap">
+            <rect x="0" y="0" width="100" height="100" fill="url(#shakeFieldStrong)" className="map-shakefield--strong" />
+            {SHAKE_CONTOURS.map((c, i) => (
+              <circle
+                key={i}
+                cx={EPICENTER.x}
+                cy={EPICENTER.y}
+                r={c.r}
+                className="map-contour"
+                style={{ stroke: c.color, animationDelay: `${0.2 + i * 0.12}s` }}
+                pathLength="1"
+              />
+            ))}
+          </g>
+        )}
 
         {/* Quake cracks near epicenter */}
         <path className="map-crack" d="M48 66 l2.4 3 l-1.6 2.4 l3 3" pathLength="1" />
@@ -133,6 +162,7 @@ export default function CityMap({ bridges, selectedIds, onToggle, showShake }) {
             key={bridge.id}
             bridge={bridge}
             selected={selectedIds.includes(bridge.id)}
+            showShaking={revealsShaking}
             onToggle={onToggle}
           />
         ))}
@@ -154,21 +184,44 @@ export default function CityMap({ bridges, selectedIds, onToggle, showShake }) {
 
       {/* Legend */}
       <div className="map-legend" aria-hidden="true">
-        <span className="map-legend__item"><span className="dot dot--shake" /> Stronger shaking</span>
-        <span className="map-legend__item">🌉 Bridge · tap to flag</span>
-        <span className="map-legend__item">★ Epicenter</span>
+        {revealsShaking ? (
+          <>
+            <span className="map-legend__scale-label">Shaking</span>
+            {SHAKE_ZONES.map((z) => (
+              <span key={z.key} className="map-legend__item">
+                <span className="dot" style={{ background: z.color }} /> {z.label}
+              </span>
+            ))}
+            <span className="map-legend__item">★ Epicenter</span>
+          </>
+        ) : (
+          <>
+            <span className="map-legend__item"><span className="dot dot--shake" /> Stronger shaking</span>
+            <span className="map-legend__item">🌉 Bridge · tap to flag</span>
+            <span className="map-legend__item">★ Epicenter</span>
+          </>
+        )}
       </div>
 
       {/* Title cartouche */}
       <div className="map-cartouche" aria-hidden="true">
         <strong>BETHLEHEM, PA</strong>
-        <span>Lehigh Valley Earthquake Drill</span>
+        <span>{revealsShaking ? 'Shaking-Intensity Map (PGA)' : 'Lehigh Valley Earthquake Drill'}</span>
       </div>
     </div>
   )
 }
 
 /* ----------------------------- Map geometry ----------------------------- */
+
+// Week 2 intensity contour rings (radii in viewBox units, centered on the
+// epicenter). Outer rings = weaker shaking, matching the SHAKE_ZONES colors.
+const SHAKE_CONTOURS = [
+  { r: 13, color: '#ff4d4d' },
+  { r: 26, color: '#ff8a3d' },
+  { r: 41, color: '#ffce4d' },
+  { r: 58, color: '#9fd98a' },
+]
 
 const RIVER =
   'M-4 54 C 14 56, 24 61, 36 61 S 58 52, 72 49 S 92 44, 112 43'

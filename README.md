@@ -93,6 +93,7 @@ Students enter their name, and every dispatch is recorded. Two layers:
        id uuid primary key default gen_random_uuid(),
        created_at timestamptz default now(),
        student text not null,
+       week int default 1,
        score_label text,
        collapses_caught int,
        high_flagged int,
@@ -100,6 +101,10 @@ Students enter their name, and every dispatch is recorded. Two layers:
        missed_collapses int,
        selections jsonb
      );
+     ```
+     If you created the table before Week 2 was added, just add the column:
+     ```sql
+     alter table quake_responses add column if not exists week int default 1;
      ```
    - In Vercel → Project → **Settings → Environment Variables**, add:
      - `SUPABASE_URL` — your project URL (Settings → API)
