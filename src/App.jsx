@@ -203,7 +203,7 @@ export default function App() {
 
       <footer className="app__footer">
         QuakeQuest · Week 1 · A catastrophe-modeling field module · Bethlehem, PA
-        earthquake drill <span className="app__build">· build v1.3</span>
+        earthquake drill <span className="app__build">· build v1.4</span>
         <button type="button" className="instructor-link" onClick={downloadLocalCsv}>
           Instructor: download responses from this device (CSV)
         </button>

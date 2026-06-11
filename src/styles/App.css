@@ -3,7 +3,7 @@
    Cute, pastel, playful styling. Plain CSS.
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
   --pink: #ff8fab;
@@ -1527,3 +1527,288 @@ h1, h2, h3,
   opacity: 0.75;
 }
 .instructor-link:hover { opacity: 1; color: var(--sky-deep); }
+
+/* =========================================================
+   v1.4 — MISSION CONTROL THEME
+   Emergency Operations Center look: deep midnight UI, glass
+   panels, glowing cyan/amber accents. The paper map stays
+   light and reads like a lit console table-map.
+   ========================================================= */
+
+:root {
+  --eoc-bg-0: #070b16;
+  --eoc-bg-1: #0c1426;
+  --eoc-panel: rgba(13, 21, 38, 0.72);
+  --eoc-border: rgba(148, 184, 255, 0.16);
+  --eoc-cyan: #38e1d4;
+  --eoc-cyan-deep: #0ea5b5;
+  --eoc-blue: #5cc8ff;
+  --eoc-amber: #ffb454;
+  --eoc-coral: #ff6b81;
+  --eoc-violet: #8b8cf8;
+
+  /* Flip shared text tokens to light-on-dark */
+  --ink: #e8eef9;
+  --ink-soft: #94a3bb;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.38);
+}
+
+::selection { background: var(--eoc-cyan); color: #04222a; }
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(1000px 540px at 85% -12%, rgba(56, 131, 225, 0.20), transparent 60%),
+    radial-gradient(800px 560px at -12% 32%, rgba(46, 225, 180, 0.13), transparent 60%),
+    radial-gradient(700px 480px at 70% 110%, rgba(139, 140, 248, 0.12), transparent 55%),
+    linear-gradient(180deg, var(--eoc-bg-0) 0%, var(--eoc-bg-1) 55%, #0a1020 100%);
+  background-attachment: fixed;
+}
+
+/* Faint command-center grid over the backdrop */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(120, 160, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 160, 255, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 100%);
+}
+
+/* Drifting aurora glow */
+body::after {
+  content: '';
+  position: fixed;
+  width: 64vw;
+  height: 64vw;
+  left: -18vw;
+  top: -24vw;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(56, 225, 212, 0.10), transparent 62%);
+  filter: blur(50px);
+  animation: auroraDrift 22s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(38vw, 16vh) scale(1.25); }
+}
+
+/* Headings get the display face */
+h1, h2, h3, .btn {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Quiet down the floating emoji on the dark backdrop */
+.floaty { opacity: 0.22; filter: saturate(0.7); }
+
+/* ---------- Header: glass command bar ---------- */
+.header {
+  background: linear-gradient(120deg, rgba(18, 28, 52, 0.92), rgba(14, 40, 58, 0.88));
+  border: 1px solid var(--eoc-border);
+  border-top: 2px solid rgba(56, 225, 212, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.header__title {
+  background: linear-gradient(92deg, #7df3e3 0%, var(--eoc-blue) 48%, var(--eoc-amber) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+.header__eyebrow { color: rgba(148, 184, 255, 0.85); }
+.header__subtitle { color: rgba(232, 238, 249, 0.82); }
+.seismograph {
+  background: rgba(6, 12, 24, 0.9);
+  border: 1px solid rgba(78, 227, 154, 0.35);
+}
+
+/* ---------- Glass panels ---------- */
+.mission-panel__card,
+.locked-modules,
+.story-panel__bubble {
+  background: var(--eoc-panel);
+  border: 1px solid var(--eoc-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+}
+.mission-panel__card { border-top: 2px solid rgba(56, 225, 212, 0.55); }
+.story-panel__bubble::before { border-right-color: var(--eoc-border); }
+.story-panel__avatar {
+  background: rgba(13, 21, 38, 0.9);
+  border-color: rgba(255, 180, 84, 0.45);
+}
+.story-panel__hint { color: var(--eoc-amber); }
+
+/* ---------- Map: lit console screen ---------- */
+.city-map {
+  border: 1px solid rgba(148, 184, 255, 0.25);
+  box-shadow:
+    0 0 0 6px rgba(8, 13, 26, 0.85),
+    0 0 60px rgba(56, 131, 225, 0.22),
+    0 28px 70px rgba(0, 0, 0, 0.55);
+}
+/* Map chrome sits on light paper — re-pin its text to dark */
+.map-cartouche strong { color: #2b3543; font-family: 'Space Grotesk', 'Inter', sans-serif; }
+.map-cartouche span { color: #687481; }
+.map-legend { color: #5d6a78; }
+
+/* Tooltip: dark glass */
+.bridge__tooltip {
+  background: #0e1830;
+  color: var(--ink);
+  border-color: rgba(148, 184, 255, 0.32);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+.bridge__tooltip em { color: var(--ink-soft); }
+.bridge__route { color: #7cb3ff; }
+
+/* ---------- Inputs & flagged list ---------- */
+.student-field__input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(148, 184, 255, 0.24);
+  color: var(--ink);
+}
+.student-field__input::placeholder { color: rgba(148, 163, 187, 0.55); }
+.student-field__input:focus {
+  border-color: var(--eoc-cyan);
+  box-shadow: 0 0 0 3px rgba(56, 225, 212, 0.18);
+}
+
+.selected-list__item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 180, 84, 0.30);
+}
+.selected-list__remove {
+  background: rgba(255, 255, 255, 0.10);
+  color: var(--ink);
+}
+.selected-list__remove:hover { background: var(--eoc-coral); color: #fff; }
+
+.reason-picker__select {
+  background: #101a30;
+  color: var(--ink);
+  border-color: rgba(148, 184, 255, 0.26);
+}
+.reason-picker__select:focus-visible { outline-color: var(--eoc-cyan); }
+
+/* ---------- Buttons ---------- */
+.btn--primary {
+  background: linear-gradient(120deg, var(--eoc-cyan-deep), var(--eoc-cyan));
+  color: #04222a;
+  box-shadow:
+    0 0 0 1px rgba(56, 225, 212, 0.4),
+    0 8px 26px rgba(14, 165, 181, 0.38);
+}
+.btn--primary:active:not(:disabled) {
+  box-shadow: 0 0 0 1px rgba(56, 225, 212, 0.4), 0 3px 12px rgba(14, 165, 181, 0.3);
+}
+.btn--primary:disabled {
+  background: rgba(255, 255, 255, 0.07);
+  color: #5b6a82;
+  box-shadow: none;
+}
+.btn--locked {
+  background: rgba(255, 255, 255, 0.06);
+  color: #5b6a82;
+  box-shadow: none;
+}
+.mission-panel__submit:not(:disabled) { animation: btnGlow 2.6s ease-in-out infinite; }
+@keyframes btnGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(56, 225, 212, 0.4), 0 8px 26px rgba(14, 165, 181, 0.38); }
+  50% { box-shadow: 0 0 0 1px rgba(56, 225, 212, 0.65), 0 8px 40px rgba(56, 225, 212, 0.55); }
+}
+
+/* ---------- Course roadmap ---------- */
+.module-card--open {
+  background: linear-gradient(160deg, rgba(56, 225, 212, 0.16), rgba(56, 131, 225, 0.10));
+  border: 1px solid rgba(56, 225, 212, 0.5);
+}
+.module-card--locked {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(148, 184, 255, 0.20);
+  filter: none;
+}
+.module-card__badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink-soft);
+  box-shadow: none;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  background: rgba(16, 26, 48, 0.95);
+  border: 1px solid rgba(255, 180, 84, 0.55);
+  color: var(--ink);
+  backdrop-filter: blur(10px);
+}
+
+/* ---------- Results modal: dark briefing room ---------- */
+.modal-overlay { background: rgba(4, 8, 18, 0.72); }
+.modal {
+  background: linear-gradient(180deg, #101a30 0%, #0c1426 100%);
+  border: 1px solid var(--eoc-border);
+}
+.modal__close {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+}
+.modal__label {
+  background: linear-gradient(120deg, var(--eoc-cyan), var(--eoc-blue));
+  color: #06222b;
+}
+
+.results-stat { border: 1px solid var(--eoc-border); }
+.results-stat--high { background: rgba(255, 107, 129, 0.14); border-color: rgba(255, 107, 129, 0.35); }
+.results-stat--medium { background: rgba(255, 180, 84, 0.13); border-color: rgba(255, 180, 84, 0.33); }
+.results-stat--missed { background: rgba(139, 140, 248, 0.13); border-color: rgba(139, 140, 248, 0.33); }
+.results-stat--reason { background: rgba(92, 200, 255, 0.12); border-color: rgba(92, 200, 255, 0.3); }
+
+.feedback-card {
+  background: rgba(255, 255, 255, 0.045);
+  border-top: 1px solid rgba(148, 184, 255, 0.10);
+  border-right: 1px solid rgba(148, 184, 255, 0.10);
+  border-bottom: 1px solid rgba(148, 184, 255, 0.10);
+  border-left-width: 5px;
+  box-shadow: none;
+}
+.feedback-card--missed { background: rgba(139, 140, 248, 0.08); }
+.feedback-card__use--good { color: #4ade80; }
+.feedback-card__use--okay { color: var(--eoc-amber); }
+.feedback-card__match.is-hit { background: rgba(63, 209, 142, 0.16); color: #5ce0a1; }
+.feedback-card__match.is-miss { background: rgba(255, 180, 84, 0.14); color: var(--eoc-amber); }
+
+.insight-card {
+  background: rgba(92, 200, 255, 0.07);
+  border-color: rgba(92, 200, 255, 0.2);
+}
+.lesson-box {
+  background: rgba(255, 180, 84, 0.10);
+  border-color: rgba(255, 180, 84, 0.38);
+}
+.week2-teaser {
+  background: rgba(139, 140, 248, 0.12);
+  border-color: rgba(139, 140, 248, 0.42);
+}
+
+.save-status--saving { background: rgba(255, 255, 255, 0.07); color: var(--ink-soft); }
+.save-status--cloud { background: rgba(63, 209, 142, 0.15); color: #5ce0a1; }
+.save-status--local { background: rgba(255, 180, 84, 0.13); color: var(--eoc-amber); }
+
+/* ---------- Footer ---------- */
+.instructor-link:hover { color: var(--eoc-cyan); }
+
+/* ---------- Modal scrollbar ---------- */
+.modal::-webkit-scrollbar { width: 10px; }
+.modal::-webkit-scrollbar-thumb {
+  background: rgba(148, 184, 255, 0.22);
+  border-radius: 8px;
+}
+.modal::-webkit-scrollbar-track { background: transparent; }
