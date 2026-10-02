@@ -56,6 +56,13 @@ mission clears only the active draft; reports remain in the Mission log.
 Storage is device-specific and failures are reported. Export a CSV to keep
 both the initial plan and final dispatch order outside this browser.
 
+Mission log also displays the active planner name, mission stage, and assigned
+crews before dispatch. Edit the name in either the mission or Mission log;
+both use the same autosaved workspace and survive reloads on this device.
+Reviewed/dispatched plans keep their names locked. This active workspace is
+not a shared roster and is not counted as a completed attempt. Typing a name
+does not submit it to the instructor database.
+
 Tabs support arrow keys and Home/End; URLs and browser history preserve the
 selected tab. Old `?tab=drill&week=2` links open the single mission, and the
 obsolete query is removed. A URL cannot skip the evidence reveal. The debrief

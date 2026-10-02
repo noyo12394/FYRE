@@ -636,6 +636,32 @@
   color: var(--lab-muted);
   margin-bottom: 10px;
 }
+.saved-planner {
+  padding: 24px;
+  margin-bottom: 32px;
+}
+.saved-planner .student-field {
+  max-width: 520px;
+}
+.planner-save-status {
+  color: var(--lab-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.saved-planner > p {
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 14px 0;
+}
+.saved-planner__crews {
+  padding-left: 24px;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.saved-planner__crews li {
+  overflow-wrap: anywhere;
+}
 .mission-history {
   display: grid;
   gap: 12px;

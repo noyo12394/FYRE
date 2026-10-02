@@ -142,6 +142,10 @@ export default function App() {
       reasons: { ...current.reasons, [id]: reason },
     }))
   }
+  function setPlannerName(name) {
+    if (!editable) return
+    setWorkspace((current) => ({ ...current, studentName: name.slice(0, 80) }))
+  }
   function moveCrew(id, direction) {
     updateDraft((current) => {
       const ids = [...current.selectedIds],
@@ -455,12 +459,8 @@ export default function App() {
                       isSubmitting={isSubmitting}
                       panelRef={plannerRef}
                       validationAttempted={validationAttempted}
-                      onNameChange={(name) =>
-                        setWorkspace((current) => ({
-                          ...current,
-                          studentName: name,
-                        }))
-                      }
+                      onNameChange={setPlannerName}
+                      draftStorageAvailable={draftStorageAvailable}
                       onToggle={toggleBridge}
                       onSetReason={setReason}
                       onMove={moveCrew}
@@ -487,6 +487,10 @@ export default function App() {
               responses={responses}
               studentName={studentName}
               phase={phase}
+              draft={draft}
+              draftStorageAvailable={draftStorageAvailable}
+              editable={editable}
+              onNameChange={setPlannerName}
               onResume={() => navigate('mission')}
               onReplay={(payload) =>
                 setResult({ payload, saveStatus: payload.storage || 'local' })

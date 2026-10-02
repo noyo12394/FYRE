@@ -4,6 +4,7 @@ import { bridges, MAX_SELECTIONS } from '../data/bridges.js'
 import { MISSION_ID } from '../data/mission.js'
 import {
   normalizeDraft,
+  DRAFT_KEY,
   normalizeWorkspace,
   normalizeResponses,
   readNavigation,
@@ -250,6 +251,37 @@ test('CSV preserves both plans and neutralizes spreadsheet formulas', () => {
 test('missing browser storage returns usable fallbacks without throwing', () => {
   assert.deepEqual(readStored('not-available', []), [])
   assert.equal(writeStored('not-available', {}), false)
+})
+
+test('an entered planner and incomplete plan reload without creating a completed report', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+  const stored = new Map()
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key) => stored.get(key) ?? null,
+      setItem: (key, value) => stored.set(key, value),
+    },
+  })
+  try {
+    const workspace = normalizeWorkspace({
+      studentName: 'Draft Planner',
+      draft: {
+        selectedIds: ['fahy', 'route-412'],
+        reasons: { fahy: 'hunch', 'route-412': 'soft' },
+      },
+    })
+    assert.equal(writeStored(DRAFT_KEY, workspace), true)
+    const restored = normalizeWorkspace(readStored(DRAFT_KEY, {}))
+    assert.deepEqual(restored, workspace)
+    assert.equal(restored.studentName, 'Draft Planner')
+    assert.equal(restored.phase, 'recon')
+    assert.equal(restored.lastResultId, null)
+    assert.deepEqual(normalizeResponses(readStored('quakequest-responses', [])), [])
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'localStorage', previous)
+    else delete globalThis.localStorage
+  }
 })
 
 test('dispatch requirements identify the exact missing crews, name, and evidence', () => {
