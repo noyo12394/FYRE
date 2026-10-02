@@ -8,6 +8,10 @@ export default function ProgressPanel({
   responses,
   studentName,
   phase,
+  draft,
+  draftStorageAvailable,
+  editable,
+  onNameChange,
   onResume,
   onReplay,
   onExport,
@@ -36,7 +40,8 @@ export default function ProgressPanel({
           <p className="lab-eyebrow">EVERY CALL LEAVES A LESSON</p>
           <h2>Mission log</h2>
           <p className="lab-muted">
-            Completed missions and earlier saved attempts on this device.
+            Your saved planner, active plan, and completed attempts on this
+            device.
           </p>
         </div>
         <button
@@ -67,6 +72,67 @@ export default function ProgressPanel({
           </button>
         </article>
       </div>
+      <section
+        className="lab-panel saved-planner"
+        aria-labelledby="saved-planner-heading"
+      >
+        <div className="section-heading">
+          <div>
+            <p className="lab-eyebrow">ACTIVE WORKSPACE · THIS DEVICE</p>
+            <h3 id="saved-planner-heading">Saved planner &amp; mission</h3>
+          </div>
+          <span className="lab-tag">
+            {phase === 'complete' ? 'Dispatched' : 'In progress'}
+          </span>
+        </div>
+        <label className="student-field">
+          <span className="student-field__label">
+            Planner name in Mission log
+          </span>
+          <input
+            className="student-field__input"
+            type="text"
+            value={studentName}
+            maxLength={80}
+            autoComplete="name"
+            placeholder="Enter your name to save it here"
+            readOnly={!editable}
+            onChange={(e) => onNameChange(e.target.value)}
+            aria-describedby="planner-log-save-status"
+          />
+        </label>
+        <p
+          className="planner-save-status"
+          id="planner-log-save-status"
+          role="status"
+        >
+          {draftStorageAvailable
+            ? studentName.trim()
+              ? 'Name and plan saved on this device. Changes save automatically.'
+              : 'Your plan is saved on this device. Add a planner name above.'
+            : 'Not saved: device storage is unavailable. Keep this page open.'}
+        </p>
+        <p className="lab-muted">
+          {PHASES.find((step) => step.id === phase).name} ·{' '}
+          {draft.selectedIds.length}/5 crews assigned
+        </p>
+        {draft.selectedIds.length > 0 && (
+          <ol className="saved-planner__crews">
+            {draft.selectedIds.map((id) => (
+              <li key={id}>{bridges.find((bridge) => bridge.id === id).name}</li>
+            ))}
+          </ol>
+        )}
+        <p className="lab-muted">
+          This is one active planner, not a shared class roster. Completed reports
+          are listed below; names are sent to the instructor database only when
+          you dispatch, if it is connected.
+        </p>
+        <button className="lab-action" onClick={onResume}>
+          {phase === 'complete' ? 'View mission' : 'Continue this mission'}{' '}
+          <Icon name="arrow" />
+        </button>
+      </section>
       <div className="section-heading">
         <h3>Saved attempts</h3>
         <label className="lab-select">

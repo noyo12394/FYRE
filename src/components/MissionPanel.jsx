@@ -17,6 +17,7 @@ export default function MissionPanel({
   isSubmitting,
   panelRef,
   validationAttempted,
+  draftStorageAvailable,
 }) {
   const { selectedIds, reasons } = draft
   const selected = selectedIds.map((id) => bridges.find((b) => b.id === id))
@@ -69,6 +70,11 @@ export default function MissionPanel({
             onChange={(e) => onNameChange(e.target.value)}
           />
         </label>
+        <p className="planner-save-status" role="status">
+          {draftStorageAvailable
+            ? 'Name and plan autosaved on this device. View them in Mission log.'
+            : 'Not saved: device storage is unavailable. Keep this page open.'}
+        </p>
       </div>
       <div className="mission-panel__card">
         <h3 className="mission-panel__subtitle">
