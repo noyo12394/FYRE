@@ -1,4 +1,280 @@
 /* One continuous mission, using the established map and field-lab palette. */
+/* Keep hit areas aligned with visible markers. Oversized scaled illustrations
+   used to overlap neighboring bridges on phones. No moving click targets. */
+.single-mission .city-map__bridges {
+  pointer-events: none;
+}
+.single-mission .city-map .bridge {
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  touch-action: manipulation;
+  transform: translate(-50%, -50%);
+  background: #fffef3ed;
+  border: 1px solid #8c9c79;
+  border-radius: 9px;
+  box-shadow: 0 2px 5px #2434272b;
+  animation: none;
+  filter: none;
+  transition: background 0.15s;
+}
+.single-mission .city-map .bridge:hover,
+.single-mission .city-map .bridge:focus-visible {
+  transform: translate(-50%, -50%);
+  z-index: 8;
+}
+.single-mission .city-map .bridge--selected {
+  background: #d5edb5;
+  border: 2px solid #3e6723;
+}
+.single-mission .city-map .bridge::before {
+  display: none;
+}
+.single-mission .city-map .bridge:disabled {
+  opacity: 0.65;
+}
+.single-mission .city-map .bridge__art,
+.single-mission .city-map .bridge:hover .bridge__art {
+  width: 36px;
+  height: 23px;
+  transform: none;
+  pointer-events: none;
+}
+.single-mission .city-map .bridge__art svg {
+  width: 36px;
+  height: 23px;
+}
+.single-mission .city-map .bridge__emoji,
+.single-mission .city-map .bridge__check {
+  display: none;
+}
+.bridge__number {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #233c27;
+  color: #fff;
+  font:
+    600 11px 'Inter',
+    sans-serif;
+  border: 2px solid #fffef3;
+  pointer-events: none;
+}
+.single-mission .bridge__tooltip {
+  white-space: normal;
+  width: 220px;
+  text-align: center;
+  line-height: 1.6;
+}
+.single-mission .city-map__scenery,
+.single-mission .city-map__props,
+.single-mission .map-compass,
+.single-mission .map-legend,
+.single-mission .map-scale,
+.single-mission .map-cartouche {
+  pointer-events: none;
+}
+.single-mission .mission-map-wrap {
+  position: static;
+}
+.bridge-choices {
+  margin: 28px 0 0;
+  padding: 22px;
+  border: 1px solid var(--lab-line);
+  border-radius: 12px;
+  background: var(--lab-panel);
+  scroll-margin-top: 20px;
+}
+.bridge-choices:focus {
+  outline: 2px solid var(--lab-green);
+  outline-offset: 4px;
+}
+.bridge-choices__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bridge-choices__heading h3 {
+  font-size: 18px;
+  margin-top: 8px;
+}
+.bridge-choices > p {
+  color: var(--lab-muted);
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 14px 0 18px;
+}
+.bridge-choices__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.bridge-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  padding: 16px 12px;
+  border: 1px solid #3d4d40;
+  border-radius: 8px;
+  background: #101817;
+  color: var(--lab-text);
+  cursor: pointer;
+  min-height: 100px;
+  touch-action: manipulation;
+}
+.bridge-choice:hover:not(:disabled) {
+  border-color: #88a774;
+  background: #223023;
+}
+.bridge-choice.is-selected {
+  border-color: #bce7a1;
+  background: #bce7a10c;
+}
+.bridge-choice:disabled {
+  opacity: 0.65;
+}
+.bridge-choice__number {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #293e2b;
+  color: var(--lab-green);
+  font-size: 11px;
+}
+.bridge-choice__details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.bridge-choice__details > strong {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bridge-choice__details > small {
+  font-size: 10px;
+  color: var(--lab-muted);
+}
+.bridge-choice__details > span {
+  font-size: 11px;
+  color: var(--lab-muted);
+  line-height: 1.6;
+}
+.bridge-choice__shaking {
+  color: var(--lab-warm) !important;
+}
+.bridge-choice__status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  font-size: 9px;
+  color: var(--lab-green);
+}
+.bridge-choice__status .lab-icon {
+  width: 13px;
+  height: 13px;
+}
+.bridge-choices__return {
+  margin-top: 20px;
+}
+.single-mission .mission-panel {
+  scroll-margin-top: 20px;
+}
+.single-mission .reason-picker__select,
+.single-mission .student-field__input,
+.single-mission .lab-select select,
+.single-mission .lab-search input {
+  min-height: 44px;
+}
+.single-mission .reason-picker__select,
+.single-mission .lab-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid #59704d;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23bce7a1' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+}
+.single-mission .reason-picker__select[aria-invalid='true'],
+.single-mission .student-field__input[aria-invalid='true'] {
+  border-color: #e4ac85;
+}
+.single-mission .selected-list__remove {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+}
+.single-mission .crew-order button {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.mission-missing {
+  margin: 0 4px;
+  padding-left: 18px;
+  color: var(--lab-warm);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.inventory-locked {
+  padding: 14px 18px;
+  border: 1px solid #746443;
+  border-radius: 8px;
+  color: var(--lab-warm);
+  font-size: 12px;
+  line-height: 1.8;
+  margin-bottom: 22px;
+}
+@media (max-width: 1000px) {
+  .bridge-choices__grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .single-mission .activity-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 16px;
+    overflow: visible;
+  }
+  .single-mission .activity-tab {
+    justify-content: flex-start;
+    padding: 14px 0;
+  }
+  .bridge-choices {
+    padding: 18px;
+  }
+  .single-mission .reason-picker__select,
+  .single-mission .student-field__input {
+    font-size: 16px;
+  }
+  .single-mission .map-cartouche {
+    top: 6px;
+    left: 8px;
+    padding: 4px 8px;
+  }
+  .single-mission .map-cartouche strong {
+    font-size: 10px;
+  }
+  .single-mission .map-cartouche span {
+    font-size: 7px;
+  }
+}
 .single-mission .activity-tabs {
   margin-bottom: 24px;
 }
@@ -828,5 +1104,9 @@
   .mission-history h3 small {
     display: block;
     margin: 8px 0 0;
+  }
+  .single-mission .reason-picker__select,
+  .single-mission .student-field__input {
+    font-size: 16px;
   }
 }

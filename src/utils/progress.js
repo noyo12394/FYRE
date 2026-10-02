@@ -38,6 +38,21 @@ export function isDispatchReady(draft, studentName) {
   )
 }
 
+export function dispatchRequirements(draft, studentName) {
+  const missingCrews = Math.max(0, MAX_SELECTIONS - draft.selectedIds.length)
+  const missingReasons = draft.selectedIds.filter(
+    (id) => !reasonIds.has(draft.reasons[id]) || draft.reasons[id] === 'hunch',
+  )
+  return { missingCrews, missingName: !studentName?.trim(), missingReasons }
+}
+
+export function responseId(cryptoProvider = globalThis.crypto) {
+  // IDs identify local learner attempts; they are not authentication tokens.
+  return typeof cryptoProvider?.randomUUID === 'function'
+    ? cryptoProvider.randomUUID()
+    : `mission-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
 export function normalizeWorkspace(value) {
   const legacy = value?.drafts?.[value?.week === 2 ? 2 : 1]
   const draft = normalizeDraft(value?.draft || legacy)
@@ -76,6 +91,19 @@ export function lockBaseline(workspace) {
     ...workspace,
     phase: 'intel',
     baseline: normalizeDraft(workspace.draft),
+    // A hunch is valid in the initial snapshot, but not in the evidence phase.
+    // Keep the native select's value in sync with its actual available options.
+    draft: {
+      ...workspace.draft,
+      reasons: Object.fromEntries(
+        workspace.draft.selectedIds.map((id) => [
+          id,
+          workspace.draft.reasons[id] === 'hunch'
+            ? ''
+            : workspace.draft.reasons[id],
+        ]),
+      ),
+    },
   }
 }
 

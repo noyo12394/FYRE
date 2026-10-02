@@ -6,19 +6,30 @@ import { SHAKE_META } from '../data/bridges.js'
 // its route, and a vague field observation (the "clue"). Initially no risk
 // numbers show; after the evidence reveal each bridge wears a shaking-intensity
 // chip and its measured ground motion appears in the tooltip.
-export default function Bridge({ bridge, selected, showShaking, onToggle }) {
+export default function Bridge({
+  bridge,
+  number,
+  selected,
+  showShaking,
+  onToggle,
+  editable,
+}) {
   const { name, route, x, y, rotation, clue, emoji, trueRisk, shaking } = bridge
   const zone = shaking ? SHAKE_META[shaking.zone] : null
 
   return (
     <button
       type="button"
+      disabled={!editable}
       className={`bridge bridge--risk-${trueRisk} ${selected ? 'bridge--selected' : ''} ${showShaking ? 'bridge--shaking' : ''}`}
       style={{ left: `${x}%`, top: `${y}%`, '--rot': `${rotation}deg` }}
       onClick={() => onToggle(bridge.id)}
       aria-pressed={selected}
       aria-label={`${name} on ${route}. Field note: ${clue}.${showShaking && shaking ? ` Shaking: ${zone.label}, ${shaking.pga}.` : ''} ${selected ? 'Flagged' : 'Not flagged'}`}
     >
+      <span className="bridge__number" aria-hidden="true">
+        {number}
+      </span>
       <span className="bridge__art" aria-hidden="true">
         <svg viewBox="0 0 80 46" width="80" height="46">
           {/* arch */}
