@@ -2,21 +2,26 @@ export const MISSION_ID = 'golden-hour'
 export const PHASES = [
   {
     id: 'recon',
-    name: 'Scout',
-    detail: 'Make your first call',
+    name: 'Choose crossings',
+    detail: 'Assign your first five crews',
     icon: 'search',
   },
-  { id: 'intel', name: 'Adapt', detail: 'New evidence arrives', icon: 'wave' },
+  {
+    id: 'intel',
+    name: 'Use new evidence',
+    detail: 'Give reasons and rank crews',
+    icon: 'wave',
+  },
   {
     id: 'review',
-    name: 'Dispatch',
-    detail: 'Rank your five crews',
+    name: 'Review & dispatch',
+    detail: 'Check your plan, then send crews',
     icon: 'flag',
   },
   {
     id: 'complete',
-    name: 'Debrief',
-    detail: 'See what you saved',
+    name: 'See results',
+    detail: 'Explore your score and saved report',
     icon: 'chart',
   },
 ]
