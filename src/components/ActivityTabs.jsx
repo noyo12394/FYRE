@@ -2,10 +2,9 @@ import React, { useRef } from 'react'
 import Icon from './Icon.jsx'
 
 export const ACTIVITY_TABS = [
-  { id: 'activities', name: 'Activities', icon: 'grid' },
-  { id: 'drill', name: 'Field drill', icon: 'map' },
-  { id: 'inventory', name: 'Bridge inventory', icon: 'bridge' },
-  { id: 'progress', name: 'My progress', icon: 'chart' },
+  { id: 'mission', name: 'The mission', icon: 'map' },
+  { id: 'inventory', name: 'Bridge intel', icon: 'bridge' },
+  { id: 'progress', name: 'Mission log', icon: 'chart' },
   { id: 'guide', name: 'Field guide', icon: 'book' },
 ]
 

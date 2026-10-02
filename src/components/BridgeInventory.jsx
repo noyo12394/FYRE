@@ -4,7 +4,8 @@ import { MAX_SELECTIONS, SHAKE_META, SHAKE_ZONES } from '../data/bridges.js'
 
 export default function BridgeInventory({
   bridges,
-  week,
+  revealsShaking,
+  editable,
   selectedIds,
   onToggle,
   onReturn,
@@ -22,15 +23,15 @@ export default function BridgeInventory({
           const matchesFilter =
             filter === 'all' ||
             (filter === 'flagged' && selectedIds.includes(bridge.id)) ||
-            (week.revealsShaking && bridge.shaking.zone === filter)
+            (revealsShaking && bridge.shaking.zone === filter)
           return matchesText && matchesFilter
         })
         .sort((a, b) =>
-          sort === 'shaking' && week.revealsShaking
+          sort === 'shaking' && revealsShaking
             ? b.shaking.level - a.shaking.level || a.name.localeCompare(b.name)
             : a.name.localeCompare(b.name),
         ),
-    [bridges, search, filter, sort, selectedIds, week.revealsShaking],
+    [bridges, search, filter, sort, selectedIds, revealsShaking],
   )
 
   return (
@@ -38,26 +39,26 @@ export default function BridgeInventory({
       <div className="section-heading">
         <div>
           <p className="lab-eyebrow">TEN CROSSINGS. DIFFERENT CLUES.</p>
-          <h2>Bridge inventory</h2>
+          <h2>Bridge intel</h2>
           <p className="lab-muted">
             Explore the field notes and add crossings to your current inspection
             plan.
           </p>
         </div>
         <button className="lab-action" onClick={onReturn}>
-          Return to field drill <Icon name="arrow" />
+          Return to mission <Icon name="arrow" />
         </button>
       </div>
       <div className="inventory-context">
         <span>
           <Icon name="flag" />
-          <strong>{week.label} draft</strong> · {selectedIds.length}/
+          <strong>Your mission plan</strong> · {selectedIds.length}/
           {MAX_SELECTIONS} crews assigned
         </span>
         <span>
-          {week.revealsShaking
+          {revealsShaking
             ? 'Evidence: field notes + simulated shaking'
-            : 'Evidence: field notes only'}
+            : 'Field notes only · lock your first plan to unlock shaking'}
         </span>
       </div>
       <div className="inventory-tools">
@@ -79,7 +80,7 @@ export default function BridgeInventory({
           >
             <option value="all">All bridges</option>
             <option value="flagged">Flagged bridges</option>
-            {week.revealsShaking &&
+            {revealsShaking &&
               SHAKE_ZONES.map((zone) => (
                 <option key={zone.key} value={zone.key}>
                   {zone.label} shaking
@@ -94,7 +95,7 @@ export default function BridgeInventory({
             onChange={(event) => setSort(event.target.value)}
           >
             <option value="name">Name A–Z</option>
-            {week.revealsShaking && (
+            {revealsShaking && (
               <option value="shaking">Strongest shaking</option>
             )}
           </select>
@@ -121,7 +122,7 @@ export default function BridgeInventory({
                 </div>
                 <h3>{bridge.name}</h3>
                 <p className="inventory-card__clue">“{bridge.clue}”</p>
-                {week.revealsShaking && (
+                {revealsShaking && (
                   <span
                     className="inventory-shaking"
                     style={{ '--zone': SHAKE_META[bridge.shaking.zone].color }}
@@ -134,6 +135,7 @@ export default function BridgeInventory({
                 )}
                 <button
                   className="inventory-card__flag"
+                  disabled={!editable}
                   aria-pressed={selected}
                   aria-label={`${selected ? 'Unflag' : 'Flag'} ${bridge.name}`}
                   onClick={() => onToggle(bridge.id)}

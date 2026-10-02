@@ -1,85 +1,33 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { REASON_OPTIONS, SHAKE_META } from '../data/bridges.js'
-import { scoreSelection } from '../utils/scoring.js'
+import { MISSION_ID } from '../data/mission.js'
+import { scoreMission } from '../utils/scoring.js'
 
-// Small animated number that counts up from 0 to `value` for a bit of flair.
-function CountUp({ value, duration = 900 }) {
-  const [n, setN] = useState(0)
-  useEffect(() => {
-    let raf
-    const start = performance.now()
-    const tick = (now) => {
-      const t = Math.min(1, (now - start) / duration)
-      const eased = 1 - Math.pow(1 - t, 3)
-      setN(Math.round(eased * value))
-      if (t < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [value, duration])
-  return <>{n}</>
-}
-
-const reasonLabel = (id) => {
-  const r = REASON_OPTIONS.find((o) => o.id === id)
-  return r ? `${r.emoji} ${r.label}` : '🤔 Just a hunch'
-}
-
-const outcomeMeta = {
-  Collapsed: { cls: 'collapsed', emoji: '💥' },
-  'Major damage': { cls: 'major', emoji: '🟠' },
-  'Moderate damage': { cls: 'moderate', emoji: '🟡' },
-  'Minor damage': { cls: 'minor', emoji: '🟢' },
-  Undamaged: { cls: 'safe', emoji: '✅' },
-}
-
-function usefulness(b) {
-  if (b.outcome === 'Collapsed')
-    return { text: 'Critical catch — this one collapsed.', cls: 'good' }
-  if (b.trueRisk === 'high')
-    return { text: 'Great call — it took major damage.', cls: 'good' }
-  if (b.trueRisk === 'medium')
-    return { text: 'Reasonable — worth a look.', cls: 'okay' }
-  return { text: 'Lower priority this time.', cls: 'meh' }
-}
-
-const SAVE_STATUS_TEXT = {
-  saving: '⏳ Recording your response…',
-  cloud: '✓ Response recorded for your instructor.',
-  local: '✓ Saved on this device. The class database could not be reached.',
+const reasonLabel = (id) =>
+  REASON_OPTIONS.find((reason) => reason.id === id)?.label ||
+  'No reason recorded'
+const SAVE_STATUS = {
+  saving: 'Recording your response…',
+  cloud: 'Response recorded for your instructor.',
+  local: 'Saved on this device. The instructor database could not be reached.',
   memory:
-    'Browser storage is unavailable. Export your response from My progress before leaving.',
-}
-
-// Small shaking-intensity chip reused on the feedback cards in Week 2.
-function ShakeChip({ shaking }) {
-  if (!shaking) return null
-  const zone = SHAKE_META[shaking.zone]
-  return (
-    <span className="shake-chip" style={{ '--zone': zone.color }}>
-      📳 {zone.label} · {shaking.pga}
-    </span>
-  )
+    'Device storage is unavailable. Export your Mission log before leaving.',
 }
 
 export default function ResultsModal({
   bridges,
-  selectedIds,
-  reasons,
+  payload,
   saveStatus,
-  week,
-  hasNext,
-  nextLabel,
-  onAdvanceWeek,
-  onPlayAgain,
   onClose,
+  onPlayAgain,
+  isSubmitting,
 }) {
-  const dialogRef = useRef(null)
-  const closeHandler = useRef(onClose)
+  const dialogRef = useRef(null),
+    closeHandler = useRef(onClose)
   closeHandler.current = onClose
   useEffect(() => {
-    const previousFocus = document.activeElement
-    const previousOverflow = document.body.style.overflow
+    const previousFocus = document.activeElement,
+      previousOverflow = document.body.style.overflow
     const background = [
       ...document.querySelectorAll(
         '.lab-topline, .header, .activity-tabs, .app__main, .app__footer, .skip-link',
@@ -103,241 +51,252 @@ export default function ResultsModal({
           'button:not(:disabled), a[href], select, input, [tabindex="0"]',
         ),
       ]
-      const first = controls[0]
-      const last = controls[controls.length - 1]
+      const first = controls[0],
+        last = controls[controls.length - 1]
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault()
         last?.focus()
-      }
-      if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault()
         first?.focus()
       }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => {
+      document.removeEventListener('keydown', onKeyDown)
       background.forEach((element, index) => {
         element.inert = previousInert[index]
       })
       document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', onKeyDown)
       if (previousFocus?.isConnected) previousFocus.focus()
+      else document.getElementById('workspace-panel')?.focus()
     }
   }, [])
-  const r = scoreSelection(bridges, selectedIds, reasons)
-  const revealsShaking = !!(week && week.revealsShaking)
-
-  // Week 2 extra read-out: did the planner concentrate crews where it shook
-  // hardest? (severe/strong tiers). Teaches that shaking is a strong — but
-  // imperfect — guide.
-  const strongPicked = revealsShaking
-    ? r.selected.filter(
-        (b) =>
-          b.shaking &&
-          (b.shaking.zone === 'severe' || b.shaking.zone === 'strong'),
+  const ids = payload.selections.map((s) => s.id)
+  const reasons = Object.fromEntries(
+    payload.selections.map((s) => [s.id, s.reason]),
+  )
+  const score = scoreMission(bridges, ids, reasons),
+    mission = payload.missionId === MISSION_ID
+  const baseline = payload.baseline
+  const changeRows = baseline
+    ? [...new Set([...baseline.selectedIds, ...ids])].map((id) =>
+        bridges.find((b) => b.id === id),
+      )
+    : []
+  const added = baseline
+    ? ids.filter((id) => !baseline.selectedIds.includes(id)).length
+    : 0
+  const changes = baseline
+    ? ids.filter(
+        (id) =>
+          baseline.selectedIds.indexOf(id) !== ids.indexOf(id) ||
+          baseline.reasons[id] !== reasons[id],
       ).length
     : 0
-
   return (
-    <div
-      className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Inspection results"
-    >
-      <div className="modal" ref={dialogRef}>
+    <div className="modal-backdrop">
+      <section
+        ref={dialogRef}
+        className="results-modal mission-results"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="debrief-title"
+        aria-describedby="debrief-notice"
+      >
         <button
-          className="modal__close"
+          type="button"
+          className="results-modal__close"
           onClick={onClose}
-          aria-label="Close results"
+          aria-label="Close mission debrief"
         >
           ✕
         </button>
-
-        <div className="modal__header">
-          <div className="modal__mascot" aria-hidden="true">
-            🐿️⛑️
-          </div>
-          {week && (
-            <p className="modal__week">
-              {week.label} · {week.name}
-            </p>
-          )}
-          <h2 className="modal__title">Inspection Debrief</h2>
-          <p className="modal__label">{r.label}</p>
-          <p className="modal__simulation-note">
-            Modeled drill outcomes · For learning and reflection
+        <header className="debrief-header">
+          <p className="lab-eyebrow">
+            {mission
+              ? 'THE GOLDEN HOUR / MISSION DEBRIEF'
+              : 'PREVIOUS DRILL / SAVED REPORT'}
           </p>
-        </div>
-
-        {/* Quick stats */}
-        <div className="results-stats">
-          <div className="results-stat results-stat--high">
-            <span className="results-stat__num">
-              <CountUp value={r.collapsesCaught.length} />
-              <span className="results-stat__den">/{r.totalCollapses}</span>
-            </span>
-            <span className="results-stat__cap">Collapses caught</span>
-          </div>
-          <div className="results-stat results-stat--medium">
-            <span className="results-stat__num">
-              <CountUp value={r.highSelected.length} />
-              <span className="results-stat__den">/{r.totalHigh}</span>
-            </span>
-            <span className="results-stat__cap">High-risk flagged</span>
-          </div>
-          {revealsShaking ? (
-            <div className="results-stat results-stat--shake">
-              <span className="results-stat__num">
-                <CountUp value={strongPicked} />
-                <span className="results-stat__den">/{r.selected.length}</span>
-              </span>
-              <span className="results-stat__cap">In strong shaking</span>
-            </div>
-          ) : (
-            <div className="results-stat results-stat--reason">
-              <span className="results-stat__num">
-                <CountUp value={r.reasoningHits.length} />
-              </span>
-              <span className="results-stat__cap">Reasons that matched</span>
-            </div>
-          )}
-          <div className="results-stat results-stat--missed">
-            <span className="results-stat__num">
-              <CountUp value={r.missedCollapses.length} />
-            </span>
-            <span className="results-stat__cap">Collapses missed</span>
-          </div>
-        </div>
-
-        {/* Per-bridge feedback */}
-        <h3 className="results-section-title">Your Flagged Bridges 🌉</h3>
-        <div className="feedback-cards">
-          {r.selected.map((b) => {
-            const use = usefulness(b)
-            const om = outcomeMeta[b.outcome] || outcomeMeta.Undamaged
-            const picked = reasons[b.id] || 'hunch'
-            const matched = b.trueRisk === 'high' && picked === b.primaryFactor
-            return (
-              <div
-                key={b.id}
-                className={`feedback-card feedback-card--${om.cls}`}
-              >
-                <div className="feedback-card__top">
-                  <span className="feedback-card__emoji">{b.emoji}</span>
-                  <span className="feedback-card__name">
-                    {b.name}
-                    <span className="feedback-card__route">{b.route}</span>
-                  </span>
-                  <span className={`outcome-pill outcome-pill--${om.cls}`}>
-                    {om.emoji} {b.outcome}
-                  </span>
-                </div>
-                {revealsShaking && <ShakeChip shaking={b.shaking} />}
-                <p className="feedback-card__reason">{b.reason}</p>
-                {b.trueRisk === 'high' && (
-                  <p
-                    className={`feedback-card__match ${matched ? 'is-hit' : 'is-miss'}`}
-                  >
-                    Your hunch: {reasonLabel(picked)} —{' '}
-                    {matched
-                      ? 'spot on, that was the real driver! ✓'
-                      : `the real driver was “${b.factors[0]}”.`}
-                  </p>
-                )}
-                <p
-                  className={`feedback-card__use feedback-card__use--${use.cls}`}
-                >
-                  {use.text}
+          <h2 id="debrief-title">
+            {mission ? score.label : 'Your earlier response'}
+          </h2>
+          <p>
+            {payload.student}, here’s what your crews found in this teaching
+            scenario.
+          </p>
+          <p id="debrief-notice" className="lab-footnote">
+            All damage and shaking are modeled. This is not a real inspection
+            report.
+          </p>
+        </header>
+        {mission && (
+          <>
+            <div className="debrief-score">
+              <strong>
+                {score.points}
+                <small>/100</small>
+              </strong>
+              <div>
+                <h3>
+                  {score.collapsesCaught.length}/{score.totalCollapses}{' '}
+                  collapses caught
+                </h3>
+                <p>
+                  {score.highSelected.length}/{score.totalHigh} high-risk
+                  crossings flagged · {score.reasoningHits.length}/
+                  {score.totalHigh} primary vulnerabilities matched
                 </p>
               </div>
-            )
-          })}
-        </div>
-
-        {/* Missed high-risk bridges */}
-        {r.missedHigh.length > 0 && (
-          <>
-            <h3 className="results-section-title">Missed Clues 🔍</h3>
-            <div className="feedback-cards">
-              {r.missedHigh.map((b) => (
-                <div key={b.id} className="feedback-card feedback-card--missed">
-                  <div className="feedback-card__top">
-                    <span className="feedback-card__emoji">{b.emoji}</span>
-                    <span className="feedback-card__name">
-                      {b.name}
-                      <span className="feedback-card__route">{b.route}</span>
-                    </span>
-                    <span className="outcome-pill outcome-pill--collapsed">
-                      {(outcomeMeta[b.outcome] || {}).emoji} {b.outcome}
-                    </span>
-                  </div>
-                  {revealsShaking && <ShakeChip shaking={b.shaking} />}
-                  <p className="feedback-card__reason">
-                    <strong>Missed:</strong> {b.reason}
-                  </p>
-                </div>
-              ))}
             </div>
+            <div className="earned-badges">
+              {score.badges.length ? (
+                score.badges.map((badge) => (
+                  <div key={badge.name}>
+                    <span aria-hidden="true">{badge.emoji}</span>
+                    <strong>{badge.name}</strong>
+                    <small>{badge.detail}</small>
+                  </div>
+                ))
+              ) : (
+                <p>
+                  No badges yet. Use the feedback below to plan another
+                  response.
+                </p>
+              )}
+            </div>
+            <details className="debrief-rubric">
+              <summary>See your score breakdown</summary>
+              <ul>
+                {score.rubric.map((item) => (
+                  <li key={item.name}>
+                    <span>{item.name}</span>
+                    <strong>
+                      {item.earned}/{item.max}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+            </details>
+            <section className="debrief-comparison">
+              <h3>First instincts → final call</h3>
+              <p>
+                {added} new crossing{added === 1 ? '' : 's'} added · {changes}{' '}
+                final assignment{changes === 1 ? '' : 's'} with a changed
+                priority or reason.
+              </p>
+              <div className="comparison-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Crossing</th>
+                      <th>Initial plan</th>
+                      <th>Final dispatch</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {changeRows.map((bridge) => (
+                      <tr key={bridge.id}>
+                        <th scope="row">{bridge.name}</th>
+                        <td>
+                          {baseline.selectedIds.includes(bridge.id) ? (
+                            <>
+                              <strong>
+                                #{baseline.selectedIds.indexOf(bridge.id) + 1}
+                              </strong>{' '}
+                              · {reasonLabel(baseline.reasons[bridge.id])}
+                            </>
+                          ) : (
+                            'Not flagged'
+                          )}
+                        </td>
+                        <td>
+                          {ids.includes(bridge.id) ? (
+                            <>
+                              <strong>#{ids.indexOf(bridge.id) + 1}</strong> ·{' '}
+                              {reasonLabel(reasons[bridge.id])}
+                            </>
+                          ) : (
+                            'Crew reassigned'
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </>
         )}
-
-        {/* Real-event insights (week-specific) */}
-        <h3 className="results-section-title">
-          What Real Earthquakes Teach Us 🎓
-        </h3>
-        <div className="insight-cards">
-          {(week && week.insights ? week.insights : []).map((ins) => (
-            <div key={ins.title} className="insight-card">
-              <span className="insight-card__icon">{ins.icon}</span>
-              <p>
-                <strong>{ins.title}</strong> {ins.body}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Week lesson */}
-        <div className="lesson-box">
-          <h3 className="lesson-box__title">
-            {week ? week.lessonTitle : '📘 Lesson'}
-          </h3>
-          <p>{week ? week.lesson : ''}</p>
-        </div>
-
-        {/* Teaser for what's next */}
-        {week && week.teaser && (
-          <div className="week2-teaser">
-            <span className="week2-teaser__emoji">{week.teaser.emoji}</span>
-            <p>{week.teaser.text}</p>
-          </div>
-        )}
-
-        {saveStatus && (
-          <p className={`save-status save-status--${saveStatus}`}>
-            {SAVE_STATUS_TEXT[saveStatus] || ''}
+        <section className="debrief-outcomes">
+          <h3>Modeled outcomes: every crossing</h3>
+          <p className="lab-muted">
+            Your dispatch number appears beside assigned crossings. Unflagged
+            bridges are included so missed damage is visible.
           </p>
-        )}
-
-        {/* Actions */}
-        <div className="modal__actions">
-          <button className="btn btn--primary" onClick={onPlayAgain}>
-            🔁 Run {week ? `${week.label} ` : 'the drill '}again
-          </button>
-          {hasNext ? (
-            <button
-              className="btn btn--primary btn--next"
-              onClick={onAdvanceWeek}
-            >
-              ▶️ Continue to {nextLabel}
-            </button>
-          ) : (
-            <button className="btn btn--locked" disabled>
-              🔒 More weeks — coming soon
-            </button>
+          <div className="outcome-grid">
+            {bridges.map((bridge) => {
+              const priority = ids.indexOf(bridge.id),
+                flagged = priority >= 0
+              return (
+                <article
+                  key={bridge.id}
+                  className={`outcome-card ${bridge.outcome === 'Collapsed' ? 'outcome-card--critical' : ''}`}
+                >
+                  <div>
+                    <span aria-hidden="true">{bridge.emoji}</span>
+                    <span className="lab-tag">
+                      {flagged ? `CREW #${priority + 1}` : 'NOT FLAGGED'}
+                    </span>
+                  </div>
+                  <h4>{bridge.name}</h4>
+                  <strong>{bridge.outcome}</strong>
+                  <p className="outcome-card__shaking">
+                    {SHAKE_META[bridge.shaking.zone].label} shaking ·{' '}
+                    {bridge.shaking.pga}
+                  </p>
+                  <p>{bridge.reason}</p>
+                  {flagged && (
+                    <p className="outcome-card__reason">
+                      Your reason: {reasonLabel(reasons[bridge.id])}
+                    </p>
+                  )}
+                </article>
+              )
+            })}
+          </div>
+        </section>
+        <div className="debrief-takeaway">
+          <h3>Take this back into the field</h3>
+          <p>
+            Shaking tells you the hazard. Structure and ground conditions shape
+            vulnerability. A hospital route adds a consequence. A strong
+            response weighs all three.
+          </p>
+          {mission && !score.lifelineProtected && (
+            <p>
+              Try moving the hospital link into your first three while still
+              catching the most vulnerable crossings.
+            </p>
           )}
         </div>
-      </div>
+        <p className="debrief-save" role="status">
+          {SAVE_STATUS[saveStatus] || SAVE_STATUS.local}
+        </p>
+        <div className="mission-actions">
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={onPlayAgain}
+            disabled={isSubmitting}
+          >
+            Try a new strategy
+          </button>
+          <button type="button" className="lab-action" onClick={onClose}>
+            Back to workspace
+          </button>
+        </div>
+      </section>
     </div>
   )
 }

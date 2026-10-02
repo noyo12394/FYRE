@@ -1,37 +1,31 @@
-# QuakeQuest Field Lab · v2.0
+# QuakeQuest: The Golden Hour · v3
 
-An interactive catastrophe-modeling learning workspace set in a simulated
-Bethlehem, PA earthquake drill.
+One continuous earthquake-response challenge in simulated Bethlehem, PA.
+The previous visual-triage and shaking exercises are merged into this mission.
+There are no separate weeks, locked modules, or future-module cards.
 
-## Activity workspace
+## The challenge
 
-- **Activities:** a course dashboard with two playable activities, completion
-  status, resume links, and the Weeks 3–6 roadmap.
-- **Field drill:** Week 1 visual triage and Week 2 simulated shaking evidence.
-  Each week keeps its own flags and reasons when switching tabs, weeks, or
-  reloading. Five crews remain the maximum per dispatch.
-- **Bridge inventory:** search bridge names, routes, and field notes; filter
-  flagged crossings; add or remove flags in the active draft. Week 2 also
-  supports shaking-zone filters and strongest-shaking sorting. Hidden damage
-  outcomes are not shown before the debrief.
-- **My progress:** planner-specific attempt history, completion tracking,
-  reopening recorded debriefs, CSV export of all responses on the device,
-  and a comparison of the latest Week 1 and Week 2 inspection plans.
-- **Field guide:** exercise instructions, terminology, and storage guidance.
+1. **Scout:** choose exactly five of ten crossings using field notes. Lock
+   your initial plan before seeing shaking evidence.
+2. **Adapt:** unlock the simulated PGA map and a hospital radio request.
+   Revise flags, explain each crossing with an evidence-based reason, and
+   reorder crews using accessible Move up / Move down controls.
+3. **Dispatch:** add your planner name, review all five assignments, then
+   commit your final call. Outcomes stay hidden until dispatch.
+4. **Debrief:** get a transparent 100-point scenario score, earned badges,
+   modeled outcomes for every crossing, and an initial/final comparison.
 
-Tabs support arrow keys, Home/End, and shareable links such as
-`?tab=drill&week=2`. Browser back/forward restores navigation. The results
-dialog contains keyboard focus, closes with Escape, and restores focus on
-close. Layouts adapt to narrow screens and respect reduced-motion preferences.
+The support tabs are Bridge intel (search, filtering, and shaking sorting),
+Mission log (history, learner filters, replay, and CSV), and Field guide.
+The mission takes about 10–15 minutes; there is no forced countdown.
 
-Drafts and the planner name use `quakequest-workspace-v2` in localStorage.
-History continues to use `quakequest-responses`, preserving valid v1 records.
-Storage failures are reported explicitly; responses can still be exported
-during the current session. Starting a fresh plan clears only the active
-week's draft. Recorded attempts remain in history. Browser storage does not
-sync across devices.
+The score rewards two modeled collapses caught (40), four high-risk crossings
+flagged (20), their primary vulnerabilities matched (20), the hospital link
+in the first three crews (10), and a collapsed bridge in the first two (10).
+This is a teaching rubric, not an engineering inspection rule.
 
-### Development and verification
+## Development
 
 ```bash
 npm ci
@@ -40,168 +34,63 @@ npm test
 npm run build
 ```
 
-Tests cover separate week drafts, damaged saved data, legacy response
-migration, navigation validation, replay scoring, storage failures, and CSV
-escaping/formula neutralization. Production hosting remains the existing
-Vercel project connected to GitHub. The serverless response API and Supabase
-configuration are unchanged.
+Tests cover stage gating, immutable baseline snapshots, draft migration,
+dispatch validation, rankings, scoring, legacy history, CSV safety, and storage
+failures. GitHub Actions runs tests and builds for pull requests and `main`.
+The existing Vercel Git integration deploys production from `main`.
+The optional `.github/workflows/deploy.yml` only runs when opted in.
 
-The setting uses Bethlehem crossing names; PGA values, structural descriptions,
-and damage outcomes are teaching scenarios, not verified engineering data or
-live reports. Only Weeks 1 and 2 are playable; future modules are clearly
-labeled “Coming soon.”
+## Persistence and accessibility
 
-## Original exercise and instructor setup
+The active workspace uses `quakequest-mission-v3`; the active old draft is
+migrated from `quakequest-workspace-v2` without unlocking evidence. The old
+storage key is not deleted. Reports use `quakequest-responses`, preserving
+earlier attempts without counting them as completed new missions. A fresh
+mission clears only the active draft; reports remain in the Mission log.
+Storage is device-specific and failures are reported. Export a CSV to keep
+both the initial plan and final dispatch order outside this browser.
 
-A polished, playful-yet-professional browser mini-game for **Week 1** of a
-first-year undergraduate **catastrophe modeling** module. It's set as a
-**Lehigh Valley earthquake drill** on a stylized-but-realistic street map of
-**Bethlehem, PA** (home of Lehigh University) — with the real Lehigh River
-crossings as the playable bridges, and the real **1994 Northridge** damage
-record kept in the debrief as historical evidence.
+Tabs support arrow keys and Home/End; URLs and browser history preserve the
+selected tab. Old `?tab=drill&week=2` links open the single mission, and the
+obsolete query is removed. A URL cannot skip the evidence reveal. The debrief
+traps keyboard focus, closes with Escape, makes the background inert, and
+restores focus. Bridge intel provides larger alternatives to map controls.
+Layouts adapt to phones and respect reduced-motion preferences.
 
-The map draws itself in on load, the Lehigh River flows, a seismic shockwave
-radiates from the epicenter, an animated seismograph runs in the header, and
-flagged bridges glow — with compass rose, scale bar, and neighborhood labels
-for a real-map feel.
+## Instructor database (optional)
 
-> _"It's 4:31 a.m., January 17, 1994. A hidden-fault earthquake just struck
-> beneath the San Fernando Valley. You're the resilience planner in the
-> Emergency Operations Center — with no engineering data yet. Which bridges get
-> a crew first?"_
+The mission also tries `POST /api/submit`. Without a configured backend it
+continues to work locally and the report explains where the response was saved.
+For Supabase, configure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in
+Vercel; never expose the service-role key in client code. The existing table
+remains compatible, with no required migration:
 
-Week 1 is **not** about equations. Students do rapid **triage** using intuition,
-flagging up to five bridges and tagging *why*. The debrief then reveals what
-actually happened — grounded in the documented damage record (MCEER-98-0004) —
-including the four real collapses (La Cienega–Venice, Gavin Canyon, the I-5/SR-14
-Newhall Pass interchange, and Mission–Gothic), and teaches three real lessons:
-looks deceive, a few failures dominate cost (~6 collapses ≈ 69% of repair $),
-and importance ≠ fragility.
-
-## ✨ Features
-
-- Cartoon **San Fernando Valley** map in pure HTML/CSS/SVG — freeway network
-  (I-5, I-405, I-10, US-101, SR-118, SR-14), a pulsing **epicenter** with a
-  radial shaking field, LA River, hills, hospital, cracks. No GIS / mapbox / leaflet.
-- 10 clickable bridges (4 real collapses + realistic medium/low cases) with
-  hover field-notes and vague clues — no numbers.
-- Flag up to **5** bridges, each with a **"why did you flag it?"** reasoning tag
-  that gets scored against the real cause of failure.
-- Confetti on dispatch; an opening map "aftershock" shudder.
-- Professional **debrief**: collapses caught, reasoning matches, per-bridge
-  real outcomes (Collapsed/Major/Minor/Safe), missed-clue cards, three
-  real-event insight cards, and the Week 1 lesson.
-- Course roadmap (Weeks 2–6) mirroring the real capstone arc: shaking intensity,
-  inventory & age, vulnerability score, damage probability, network criticality.
-- Mascot field-guide **PGA Pal** 🐿️⛑️ (PGA intentionally unexplained until Week 2),
-  rounded cards, `prefers-reduced-motion` support.
-
-## 🚀 Getting started
-
-```bash
-npm install
-npm run dev
+```sql
+create table quake_responses (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz default now(),
+  student text not null,
+  week int default 1,
+  score_label text,
+  collapses_caught int,
+  high_flagged int,
+  reasoning_hits int,
+  missed_collapses int,
+  selections jsonb
+);
 ```
 
-Then open the local URL Vite prints (usually http://localhost:5173).
+The numeric `week` column is retained only for backend compatibility. New
+selection JSON carries final priority, initial priority/reason, and mission
+metadata with the complete baseline on the first assignment. The score is
+also recorded in `score_label`. Local reports keep the complete mission.
+Set an `EXPORT_KEY` for the instructor-only `/api/export?key=<EXPORT_KEY>`
+CSV endpoint. Device exports are available through the Mission log.
 
-Build for production:
+## Teaching scenario
 
-```bash
-npm run build
-npm run preview
-```
-
-## ▲ Deploying to Vercel
-
-The repo is import-ready (`vercel.json`, Vite preset, `dist` output). A GitHub
-Actions workflow at `.github/workflows/deploy.yml` deploys to **production on
-every push to `main`** — once you opt in:
-
-1. **Create the Vercel project** and link it locally once to get the IDs:
-   ```bash
-   npm i -g vercel
-   vercel link        # creates .vercel/project.json with orgId + projectId
-   ```
-2. In GitHub → **Settings → Secrets and variables → Actions**:
-   - Add **secrets**: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
-   - Add a **variable**: `ENABLE_VERCEL_DEPLOY` = `true`
-3. Push to `main` (or run the workflow manually via **Actions → Deploy to
-   Vercel → Run workflow**).
-
-Until `ENABLE_VERCEL_DEPLOY` is set, the workflow skips cleanly — no failed
-checks. Prefer zero config? Just **Import Project** at vercel.com and Vercel
-auto-detects Vite and deploys on every push (no workflow needed).
-
-## 📝 Collecting student responses (instructor setup)
-
-Students enter their name, and every dispatch is recorded. Two layers:
-
-1. **Class database (Supabase, recommended).** Serverless functions in `api/`
-   store each response and export a CSV:
-   - Create a free project at [supabase.com](https://supabase.com), then in the
-     SQL editor run:
-     ```sql
-     create table quake_responses (
-       id uuid primary key default gen_random_uuid(),
-       created_at timestamptz default now(),
-       student text not null,
-       week int default 1,
-       score_label text,
-       collapses_caught int,
-       high_flagged int,
-       reasoning_hits int,
-       missed_collapses int,
-       selections jsonb
-     );
-     ```
-     If you created the table before Week 2 was added, just add the column:
-     ```sql
-     alter table quake_responses add column if not exists week int default 1;
-     ```
-   - In Vercel → Project → **Settings → Environment Variables**, add:
-     - `SUPABASE_URL` — your project URL (Settings → API)
-     - `SUPABASE_SERVICE_ROLE_KEY` — the `service_role` key (server-side only)
-     - `EXPORT_KEY` — any secret string you choose
-   - Redeploy. Responses now flow into Supabase, and the CSV downloads from:
-     `https://<your-site>/api/export?key=<EXPORT_KEY>`
-
-2. **Local fallback (zero setup).** Every response is also saved in the
-   browser's localStorage. The footer link *"Instructor: download responses
-   from this device (CSV)"* exports them — handy for a lab session on one
-   machine even before Supabase is configured. The results screen tells the
-   student whether their response reached the class database or was saved
-   locally.
-
-## 🧱 Project structure
-
-```
-src/
-  App.jsx                 # State + layout
-  main.jsx                # React entry
-  components/
-    Header.jsx            # Title + mascot
-    StoryPanel.jsx        # Story intro
-    CityMap.jsx           # Cartoon map (river, roads, buildings, cracks)
-    Bridge.jsx            # A single clickable bridge
-    MissionPanel.jsx      # Mission, crew tracker, selected list, submit
-    ResultsModal.jsx      # Scoring + feedback + lesson
-    LockedModules.jsx     # Weeks 2–6 locked cards
-    Toast.jsx             # "Crews are limited" warning
-    Confetti.jsx          # Dependency-free sparkle burst
-  data/
-    bridges.js            # 10 bridges with hidden risk data
-  styles/
-    App.css               # All styling
-```
-
-## 🧠 Teaching note
-
-Hidden bridge properties (`trueRisk`, `reason`, `visualClue`) live only in
-`src/data/bridges.js` and are revealed in the results modal. In Week 1 students
-are **not expected to be correct** — the point is that early disaster decisions
-are made with incomplete information, and catastrophe modeling adds better
-layers of evidence over time.
-
-Later weeks (locked for now): shaking intensity, bridge inventory,
-vulnerability score, damage probability, and policy & recovery planning.
+Bethlehem names provide the setting, not verified infrastructure facts.
+Shaking, structural descriptions, damage, and the hospital radio message are
+simulated. This application is not live emergency information or an
+engineering assessment. Model outcomes are inspectable in the client source;
+the mission is a learning exercise, not an anti-cheating assessment.

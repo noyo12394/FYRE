@@ -1,253 +1,149 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Icon from './Icon.jsx'
-import { WEEKS, getWeek } from '../data/weeks.js'
-import { bridges, REASON_OPTIONS } from '../data/bridges.js'
-
-const formatDate = (value) =>
-  new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(new Date(value))
+import { MISSION_ID, PHASES } from '../data/mission.js'
+import { bridges } from '../data/bridges.js'
+import { scoreMission } from '../utils/scoring.js'
 
 export default function ProgressPanel({
   responses,
-  allResponses,
   studentName,
-  drafts,
-  onNameChange,
-  onStart,
-  onReview,
+  phase,
+  onResume,
+  onReplay,
   onExport,
+  onRestart,
+  isSubmitting,
 }) {
-  const completed = new Set(responses.map((response) => response.week))
-  const history = [...responses].sort(
-    (a, b) => Date.parse(b.submittedAt) - Date.parse(a.submittedAt),
+  const [filter, setFilter] = useState('all')
+  const names = [...new Set(responses.map((row) => row.student))]
+  const visible = responses.filter(
+    (row) => filter === 'all' || row.student === filter,
   )
-  const latest = Object.fromEntries(
-    WEEKS.map((week) => [week.id, history.find((row) => row.week === week.id)]),
-  )
-  const plannerNames = [
-    ...new Set([
-      ...allResponses.map((row) => row.student),
-      ...(studentName ? [studentName] : []),
-    ]),
-  ]
-
+  const missions = visible.filter((row) => row.missionId === MISSION_ID)
+  const getScore = (row) =>
+    scoreMission(
+      bridges,
+      row.selections.map((s) => s.id),
+      Object.fromEntries(row.selections.map((s) => [s.id, s.reason])),
+    )
+  const best = missions.length
+    ? Math.max(...missions.map((row) => getScore(row).points))
+    : null
   return (
     <div>
       <div className="section-heading">
         <div>
-          <p className="lab-eyebrow">YOUR DECISIONS, OVER TIME</p>
-          <h2>My progress</h2>
+          <p className="lab-eyebrow">EVERY CALL LEAVES A LESSON</p>
+          <h2>Mission log</h2>
           <p className="lab-muted">
-            Revisit your reasoning and see what changed when you gained more
-            evidence.
+            Completed missions and earlier saved attempts on this device.
           </p>
         </div>
         <button
           className="lab-action"
-          disabled={!allResponses.length}
           onClick={onExport}
+          disabled={!responses.length}
         >
-          <Icon name="download" /> Export device responses
+          <Icon name="download" /> Export all attempts
         </button>
       </div>
-      {plannerNames.length > 0 && (
-        <label className="lab-select progress-planner">
-          Planner
+      <div className="mission-log-stats">
+        <article className="lab-panel">
+          <p className="lab-eyebrow">COMPLETED MISSIONS</p>
+          <strong>{missions.length}</strong>
+          <p>One continuous challenge, played your way.</p>
+        </article>
+        <article className="lab-panel">
+          <p className="lab-eyebrow">BEST SCENARIO SCORE</p>
+          <strong>{best === null ? '—' : `${best}/100`}</strong>
+          <p>For the learner filter below.</p>
+        </article>
+        <article className="lab-panel">
+          <p className="lab-eyebrow">CURRENT WORKSPACE</p>
+          <strong>{PHASES.find((step) => step.id === phase).name}</strong>
+          <p>{studentName || 'Add your planner name in the mission.'}</p>
+          <button className="lab-action" onClick={onResume}>
+            Resume mission <Icon name="arrow" />
+          </button>
+        </article>
+      </div>
+      <div className="section-heading">
+        <h3>Saved attempts</h3>
+        <label className="lab-select">
+          Learner
           <select
-            value={studentName}
-            onChange={(event) => onNameChange(event.target.value)}
+            aria-label="Filter mission log by learner"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
           >
-            {!studentName && <option value="">Choose a planner</option>}
-            {plannerNames.map((name) => (
+            <option value="all">All learners</option>
+            {names.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
             ))}
           </select>
         </label>
-      )}
-      <div className="progress-overview lab-panel">
-        <div>
-          <span className="lab-square-icon">
-            <Icon name="chart" />
-          </span>
-          <h3>
-            {completed.size === WEEKS.length
-              ? 'Both field activities completed'
-              : 'Every decision adds to your field experience'}
-          </h3>
-          <p>
-            {studentName.trim()
-              ? `Showing attempts for ${studentName.trim()}. `
-              : ''}
-            Drafts and history are saved in this browser.
-          </p>
-        </div>
-        <div className="progress-overview__meter">
-          <strong>
-            {Math.round((completed.size / WEEKS.length) * 100)}
-            <small>%</small>
-          </strong>
-          <progress
-            aria-label="Activities completed"
-            value={completed.size}
-            max={WEEKS.length}
-          />
-          <span>
-            {completed.size} of {WEEKS.length} activities completed
-          </span>
-        </div>
       </div>
-      <div className="progress-activities">
-        {WEEKS.map((week) => (
-          <article className="lab-panel" key={week.id}>
-            <div className="progress-activities__heading">
-              <span className="lab-square-icon">
-                <Icon name={week.revealsShaking ? 'wave' : 'bridge'} />
-              </span>
-              <span
-                className={`lab-tag ${completed.has(week.id) ? 'lab-tag--complete' : ''}`}
-              >
-                {completed.has(week.id)
-                  ? 'Completed'
-                  : drafts[week.id]?.selectedIds.length
-                    ? 'Draft saved'
-                    : 'Not started'}
-              </span>
-            </div>
-            <p className="lab-eyebrow">WEEK {week.id}</p>
-            <h3>{week.name}</h3>
-            <p>
-              {responses.filter((row) => row.week === week.id).length} recorded
-              attempts · {drafts[week.id]?.selectedIds.length || 0} bridges in
-              draft
-            </p>
-            <button className="lab-action" onClick={() => onStart(week.id)}>
-              {completed.has(week.id) ? 'Practice again' : 'Continue activity'}
-              <Icon name="arrow" />
-            </button>
-          </article>
-        ))}
-      </div>
-      {latest[1] && latest[2] && (
-        <section
-          className="comparison lab-panel"
-          aria-labelledby="comparison-title"
-        >
-          <div className="section-heading">
-            <div>
-              <p className="lab-eyebrow">YOUR LATEST PLAN IN EACH WEEK</p>
-              <h3 id="comparison-title">What did the shaking map change?</h3>
-            </div>
-          </div>
-          <div className="lab-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Bridge</th>
-                  <th scope="col">Week 1 · observation</th>
-                  <th scope="col">Week 2 · shaking</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bridges
-                  .filter((bridge) =>
-                    [latest[1], latest[2]].some((row) =>
-                      row.selections.some(
-                        (selection) => selection.id === bridge.id,
-                      ),
-                    ),
-                  )
-                  .map((bridge) => (
-                    <tr key={bridge.id}>
-                      <th scope="row">{bridge.name}</th>
-                      {[1, 2].map((week) => {
-                        const selected = latest[week].selections.find(
-                          (item) => item.id === bridge.id,
-                        )
-                        return (
-                          <td key={week}>
-                            {selected ? (
-                              <>
-                                <span className="comparison__flag">
-                                  <Icon name="flag" />
-                                  Flagged
-                                </span>
-                                <small>
-                                  {REASON_OPTIONS.find(
-                                    (reason) => reason.id === selected.reason,
-                                  )?.label || 'Just a hunch'}
-                                </small>
-                              </>
-                            ) : (
-                              <span className="lab-muted">Not flagged</span>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-      <section aria-labelledby="history-title">
-        <div className="section-heading">
-          <h3 id="history-title">Dispatch history</h3>
-          <span className="lab-muted">
-            {history.length} {history.length === 1 ? 'attempt' : 'attempts'}
-          </span>
-        </div>
-        {history.length ? (
-          <div className="dispatch-history">
-            {history.map((row) => (
-              <article className="dispatch-row" key={row.id}>
-                <span className="lab-square-icon">
-                  <Icon name="check" />
-                </span>
-                <div className="dispatch-row__details">
-                  <span className="lab-eyebrow">
-                    {getWeek(row.week).label} · {formatDate(row.submittedAt)}
+      {visible.length ? (
+        <div className="mission-history">
+          {[...visible].reverse().map((row) => {
+            const mission = row.missionId === MISSION_ID,
+              score = mission ? getScore(row) : null
+            return (
+              <article className="lab-panel mission-history__row" key={row.id}>
+                <div>
+                  <span className="lab-tag">
+                    {mission ? 'THE GOLDEN HOUR' : 'PREVIOUS DRILL ATTEMPT'}
                   </span>
-                  <h4>{row.scoreLabel}</h4>
+                  <h3>
+                    {row.student}{' '}
+                    <small>{new Date(row.submittedAt).toLocaleString()}</small>
+                  </h3>
                   <p>
-                    {row.selections.length} bridges flagged ·{' '}
-                    {row.collapsesCaught ?? 0} modeled collapses caught ·{' '}
-                    {row.reasoningHits ?? 0} matching reasons
-                  </p>
-                  <small>
+                    {mission
+                      ? `${score.points}/100 · ${score.label} · ${score.badges.length} badges earned`
+                      : row.scoreLabel || 'Saved response'}{' '}
+                    ·{' '}
                     {row.storage === 'cloud'
-                      ? 'Recorded for instructor'
+                      ? 'Instructor database'
                       : row.storage === 'memory'
-                        ? 'Available this session only'
+                        ? 'In this session only'
                         : 'Saved on this device'}
-                  </small>
+                  </p>
                 </div>
-                <button className="lab-action" onClick={() => onReview(row)}>
-                  View debrief <Icon name="arrow" />
+                <button className="lab-action" onClick={() => onReplay(row)}>
+                  Open debrief <Icon name="arrow" />
                 </button>
               </article>
-            ))}
-          </div>
-        ) : (
-          <div className="lab-empty">
-            <Icon name="flag" />
-            <h3>Your first dispatch starts the story</h3>
-            <p>
-              Complete a field activity to record your choices and unlock a
-              debrief.
-            </p>
-            <button className="btn btn--primary" onClick={() => onStart(1)}>
-              Open Bridge Triage <Icon name="arrow" />
-            </button>
-          </div>
-        )}
-      </section>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="lab-empty">
+          <Icon name="flag" />
+          <h3>Your first mission starts here</h3>
+          <p>
+            Complete the challenge to save your plan, score, and earned badges.
+          </p>
+          <button className="lab-action" onClick={onResume}>
+            Go to the mission <Icon name="arrow" />
+          </button>
+        </div>
+      )}
+      <div className="mission-log-footer">
+        <p className="lab-muted">
+          A new mission resets only the active plan. Your saved reports stay
+          here.
+        </p>
+        <button
+          className="lab-action"
+          disabled={isSubmitting}
+          onClick={onRestart}
+        >
+          Start a new mission <Icon name="arrow" />
+        </button>
+      </div>
     </div>
   )
 }
