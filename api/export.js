@@ -8,8 +8,9 @@
 //   EXPORT_KEY — any secret string; required as ?key= to download the CSV.
 
 function csvEscape(v) {
-  const s = v == null ? '' : String(v)
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  let s = v == null ? '' : String(v)
+  if (/^[\s]*[=+@-]/.test(s)) s = `'${s}`
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
 export default async function handler(req, res) {
@@ -18,7 +19,11 @@ export default async function handler(req, res) {
   const exportKey = process.env.EXPORT_KEY
 
   if (!url || !key) {
-    res.status(503).send('Backend not configured (set SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).')
+    res
+      .status(503)
+      .send(
+        'Backend not configured (set SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).',
+      )
     return
   }
   if (!exportKey || req.query.key !== exportKey) {
@@ -37,21 +42,51 @@ export default async function handler(req, res) {
   const rows = await r.json()
 
   const header = [
-    'created_at', 'student', 'score_label', 'collapses_caught', 'high_flagged',
-    'reasoning_hits', 'missed_collapses', 'selections',
+    'created_at',
+    'student',
+    'score_label',
+    'collapses_caught',
+    'high_flagged',
+    'reasoning_hits',
+    'missed_collapses',
+    'initial_plan',
+    'dispatch_order',
   ]
   const lines = [header.join(',')]
   for (const row of rows) {
     const selections = (row.selections || [])
-      .map((s) => `${s.name || s.id} (${s.reason || 'hunch'})`)
+      .map(
+        (s, i) =>
+          `${s.priority || i + 1}. ${s.name || s.id} (${s.reason || 'hunch'})`,
+      )
       .join('; ')
-    lines.push([
-      row.created_at, row.student, row.score_label, row.collapses_caught,
-      row.high_flagged, row.reasoning_hits, row.missed_collapses, selections,
-    ].map(csvEscape).join(','))
+    const baseline = row.selections?.[0]?.initialPlan
+    const initialPlan = (baseline?.selectedIds || [])
+      .map(
+        (id, i) => `${i + 1}. ${id} (${baseline.reasons?.[id] || 'no reason'})`,
+      )
+      .join('; ')
+    lines.push(
+      [
+        row.created_at,
+        row.student,
+        row.score_label,
+        row.collapses_caught,
+        row.high_flagged,
+        row.reasoning_hits,
+        row.missed_collapses,
+        initialPlan,
+        selections,
+      ]
+        .map(csvEscape)
+        .join(','),
+    )
   }
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8')
-  res.setHeader('Content-Disposition', 'attachment; filename="quakequest_responses.csv"')
+  res.setHeader(
+    'Content-Disposition',
+    'attachment; filename="quakequest_responses.csv"',
+  )
   res.status(200).send(lines.join('\n'))
 }

@@ -3,8 +3,8 @@ import { SHAKE_META } from '../data/bridges.js'
 
 // A single clickable bridge on the valley map. It's a little cartoon bridge
 // (SVG) — not just a button — with a hover tooltip showing the bridge name,
-// its route, and a vague field observation (the "clue"). In Week 1 no risk
-// numbers show; in Week 2 (`showShaking`) each bridge wears a shaking-intensity
+// its route, and a vague field observation (the "clue"). Initially no risk
+// numbers show; after the evidence reveal each bridge wears a shaking-intensity
 // chip and its measured ground motion appears in the tooltip.
 export default function Bridge({ bridge, selected, showShaking, onToggle }) {
   const { name, route, x, y, rotation, clue, emoji, trueRisk, shaking } = bridge
@@ -30,14 +30,25 @@ export default function Bridge({ bridge, selected, showShaking, onToggle }) {
             strokeLinecap="round"
           />
           {/* deck */}
-          <rect x="4" y="34" width="72" height="8" rx="4" className="bridge__deck" />
+          <rect
+            x="4"
+            y="34"
+            width="72"
+            height="8"
+            rx="4"
+            className="bridge__deck"
+          />
           {/* supports */}
           <line x1="22" y1="34" x2="22" y2="20" className="bridge__cable" />
           <line x1="40" y1="34" x2="40" y2="10" className="bridge__cable" />
           <line x1="58" y1="34" x2="58" y2="20" className="bridge__cable" />
         </svg>
         <span className="bridge__emoji">{emoji}</span>
-        {selected && <span className="bridge__check" aria-hidden="true">✅</span>}
+        {selected && (
+          <span className="bridge__check" aria-hidden="true">
+            ✅
+          </span>
+        )}
       </span>
 
       {showShaking && zone && (

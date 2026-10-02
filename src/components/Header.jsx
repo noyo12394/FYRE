@@ -1,23 +1,37 @@
 import React from 'react'
 
 // Briefing-style title bar with a live animated seismograph trace. Friendly but
-// professional. The eyebrow, title, and subtitle come from the active week's
-// config so the same bar reframes itself as the course advances.
-export default function Header({ week }) {
-  const w = week || {}
+// professional. One continuous mission, from the initial plan to the debrief.
+export default function Header({ mission }) {
+  const w = mission || {}
   return (
     <header className="header">
-      <div className="header__mascot" title="Hi, I'm PGA Pal — your field guide!">
-        <span className="header__mascot-emoji" role="img" aria-label="hard-hat squirrel field guide">
+      <div
+        className="header__mascot"
+        title="Hi, I'm PGA Pal — your field guide!"
+      >
+        <span
+          className="header__mascot-emoji"
+          role="img"
+          aria-label="hard-hat squirrel field guide"
+        >
           🐿️
         </span>
-        <span className="header__hat" aria-hidden="true">⛑️</span>
+        <span className="header__hat" aria-hidden="true">
+          ⛑️
+        </span>
       </div>
 
       <div className="header__titles">
-        <p className="header__eyebrow">{w.eyebrow || 'Catastrophe Modeling · Field Module'}</p>
-        <h1 className="header__title">QuakeQuest: {w.name || 'Bridge Triage'}</h1>
-        <p className="header__subtitle">{w.subtitle || 'Lehigh Valley Earthquake Drill · Bethlehem, PA'}</p>
+        <p className="header__eyebrow">
+          {w.eyebrow || 'Catastrophe Modeling · Field Module'}
+        </p>
+        <h1 className="header__title">
+          QuakeQuest: {w.name || 'Bridge Triage'}
+        </h1>
+        <p className="header__subtitle">
+          {w.subtitle || 'Lehigh Valley Earthquake Drill · Bethlehem, PA'}
+        </p>
       </div>
 
       {/* Animated seismograph */}

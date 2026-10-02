@@ -1,141 +1,102 @@
 import React from 'react'
 import Icon from './Icon.jsx'
+import { PHASES } from '../data/mission.js'
 
 export default function FieldGuide({ onStart }) {
   return (
-    <div>
+    <div className="field-guide">
       <div className="section-heading">
         <div>
-          <p className="lab-eyebrow">PGA PAL'S FIELD GUIDE</p>
-          <h2>A little context. A better decision.</h2>
+          <p className="lab-eyebrow">YOUR POCKET FIELD GUIDE</p>
+          <h2>One mission, four moments.</h2>
           <p className="lab-muted">
-            The concepts behind your next inspection plan.
+            Make a call, adapt to evidence, and learn from the consequences.
           </p>
         </div>
-        <span className="lab-tag">Keep this close</span>
+        <button className="lab-action" onClick={onStart}>
+          Return to mission <Icon name="arrow" />
+        </button>
       </div>
-      <section className="guide-callout lab-panel">
-        <span aria-hidden="true">🐿️</span>
-        <div>
-          <h3>You're running a learning drill.</h3>
-          <p>
-            Bethlehem is the setting. Shaking values and bridge outcomes are
-            simulated teaching data, not live earthquake reports or engineering
-            assessments. Use the exercise to practice reasoning with incomplete
-            information.
-          </p>
-        </div>
-      </section>
-      <div className="guide-grid">
-        <article className="lab-panel">
-          <Icon name="flag" />
-          <h3>01 / Observe & prioritize</h3>
-          <p>
-            Inspect the map or searchable inventory. Flag up to five crossings
-            and give a reason for each. There is no single visual clue that
-            tells the whole story.
-          </p>
-          <button className="lab-action" onClick={() => onStart(1)}>
-            Try Week 1 <Icon name="arrow" />
-          </button>
-        </article>
-        <article className="lab-panel">
-          <Icon name="wave" />
-          <h3>02 / Add the shaking layer</h3>
-          <p>
-            Week 2 adds simulated ground-motion evidence. Warmer colors mean
-            stronger shaking. Compare bridges across zones, then decide whether
-            to revise your first plan.
-          </p>
-          <button className="lab-action" onClick={() => onStart(2)}>
-            Try Week 2 <Icon name="arrow" />
-          </button>
-        </article>
-        <article className="lab-panel">
-          <Icon name="chart" />
-          <h3>03 / Dispatch & reflect</h3>
-          <p>
-            Add your planner name and dispatch your crews. The debrief reveals
-            modeled damage and compares your reasons with the scenario's
-            drivers. My progress keeps your attempts for review.
-          </p>
-        </article>
+      <div className="guide-steps">
+        {PHASES.map((step, i) => (
+          <article className="lab-panel" key={step.id}>
+            <span className="lab-tag">0{i + 1}</span>
+            <h3>{step.name}</h3>
+            <p>
+              {
+                [
+                  'Assign exactly five crews using visible field notes. Reasons are optional here. Lock the plan to preserve your first instincts.',
+                  'The simulated shaking map and a hospital radio call arrive together. Reconsider your flags, give every crossing a reason, and rank crews with Move up / Move down.',
+                  'Add your name and review all five assignments. Dispatch to commit your final plan. The first two crews and the hospital’s place in the queue matter.',
+                  'See modeled damage, a transparent score, earned badges, and a before-and-after comparison. Start a new mission to test another strategy.',
+                ][i]
+              }
+            </p>
+          </article>
+        ))}
       </div>
-      <section
-        className="lab-panel guide-glossary"
-        aria-labelledby="glossary-title"
-      >
-        <p className="lab-eyebrow">WORDS YOU'LL MEET IN THE FIELD</p>
-        <h3 id="glossary-title">The essentials</h3>
-        <dl>
-          <div>
-            <dt>Epicenter</dt>
+      <div className="guide-bottom">
+        <section className="lab-panel">
+          <p className="lab-eyebrow">HOW THE 100 POINTS WORK</p>
+          <h3>Risk, evidence, and a lifeline.</h3>
+          <ul className="guide-rubric">
+            <li>40 · Catch the two modeled collapses (20 each).</li>
+            <li>20 · Flag the four high-risk crossings (5 each).</li>
+            <li>20 · Match their primary vulnerability (5 each).</li>
+            <li>10 · Put the hospital link in your first three.</li>
+            <li>10 · Put a modeled collapsed bridge in your first two.</li>
+          </ul>
+          <p className="lab-muted">
+            The rubric uses a fixed teaching scenario, not a universal
+            inspection rule. You can see a full breakdown after dispatch.
+          </p>
+        </section>
+        <section className="lab-panel">
+          <p className="lab-eyebrow">READ THE MAP</p>
+          <h3>Shaking is only one clue.</h3>
+          <dl className="mission-glossary">
+            <dt>PGA</dt>
             <dd>
-              The point on Earth's surface directly above where an earthquake
-              starts. Nearby bridges do not necessarily experience the same
-              shaking.
+              Peak ground acceleration, shown here as a simulated fraction of
+              gravity (g). It describes shaking, not guaranteed damage.
             </dd>
-          </div>
-          <div>
-            <dt>Peak ground acceleration (PGA)</dt>
-            <dd>
-              A measure of the greatest ground acceleration during shaking,
-              expressed here as a fraction of gravity, g. A drill value of 0.46g
-              means 46% of gravitational acceleration.
-            </dd>
-          </div>
-          <div>
             <dt>Vulnerability</dt>
             <dd>
-              How susceptible a structure is to damage. Age, materials, design,
-              retrofits, and ground conditions all help explain different
-              outcomes under similar shaking.
+              Age, shape, construction, and soft ground can change how a
+              crossing responds.
             </dd>
-          </div>
-          <div>
-            <dt>Critical lifeline</dt>
+            <dt>Lifeline</dt>
             <dd>
-              A connection that supports essential services, such as ambulance
-              access. Consequences can make a crossing a priority even when its
-              modeled damage is minor.
+              A route’s importance to emergency access can make it a priority
+              even with lighter shaking.
             </dd>
-          </div>
-          <div>
-            <dt>Reasoning match</dt>
-            <dd>
-              A point in this exercise when your selected reason matches the
-              scenario's assigned primary factor for a high-risk bridge. It is
-              feedback on the teaching model, not a safety judgment.
-            </dd>
-          </div>
-        </dl>
-      </section>
+          </dl>
+        </section>
+      </div>
       <section className="lab-panel guide-faq">
-        <h3>Your workspace, explained</h3>
+        <h3>Good to know</h3>
         <details>
-          <summary>What happens when I switch activities?</summary>
+          <summary>Can I change my initial plan?</summary>
           <p>
-            Each week keeps a separate draft. You can switch tabs or weeks and
-            return to your flags and reasons. Starting a fresh plan clears only
-            that week's draft; recorded attempts stay in My progress.
+            You can edit until you lock it. After that, the initial snapshot
+            stays unchanged, but you can revise the final plan before dispatch.
           </p>
         </details>
         <details>
-          <summary>Where are my responses saved?</summary>
+          <summary>Where is my progress saved?</summary>
           <p>
-            Drafts and dispatch history are stored in this browser. When the
-            class database is connected, new dispatches are also sent to your
-            instructor. The debrief shows the actual save status. Browser
-            storage is specific to this device and can be cleared by its
-            settings.
+            Drafts and mission reports are saved on this browser when device
+            storage is available. Submissions also try the existing instructor
+            database. The debrief states whether that succeeded. Export the
+            Mission log to keep a CSV copy.
           </p>
         </details>
         <details>
-          <summary>Why are later weeks unavailable?</summary>
+          <summary>Is this real disaster information?</summary>
           <p>
-            Weeks 3–6 describe the planned course roadmap. The currently
-            playable field activities are Bridge Triage and Shaking Intensity
-            Map.
+            No. The shaking, damage, and radio message are simulated for
+            learning. This is not current infrastructure information or an
+            engineering assessment.
           </p>
         </details>
       </section>

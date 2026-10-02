@@ -1,4 +1,4 @@
-// QuakeQuest: Bridge Triage — Lehigh Valley Earthquake Drill (Week 1)
+// QuakeQuest: The Golden Hour — simulated Bethlehem response mission
 //
 // Setting: Bethlehem, Pennsylvania — home of Lehigh University. The Lehigh
 // River splits the historic North Side (Moravian downtown) from the South Side
@@ -25,7 +25,7 @@ export const REASON_OPTIONS = [
   { id: 'hunch', label: 'Just a hunch', emoji: '🤔' },
 ]
 
-// Week 2 shaking-intensity tiers (a teaching stand-in for a ShakeMap / PGA
+// Shaking-intensity tiers (a teaching stand-in for a ShakeMap / PGA
 // field). Ordered strongest → weakest. Colors drive the map heat overlay and
 // the per-bridge shaking chips.
 export const SHAKE_ZONES = [

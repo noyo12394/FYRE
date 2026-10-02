@@ -36,7 +36,9 @@ export default async function handler(req, res) {
     high_flagged: Number(b.highFlagged) || 0,
     reasoning_hits: Number(b.reasoningHits) || 0,
     missed_collapses: Number(b.missedCollapses) || 0,
-    selections: b.selections, // [{ id, name, reason }]
+    // Assignment order and mission/initial-plan metadata remain inside the
+    // existing JSON column, keeping deployed instructor tables compatible.
+    selections: b.selections,
   }
 
   try {
