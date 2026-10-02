@@ -49,7 +49,7 @@ export const WEEKS = [
     ],
     teaser: {
       emoji: '🔓',
-      text: "Next week, you'll unlock the real shaking-intensity map — and start replacing hunches with data.",
+      text: "Next week, you'll add the drill's shaking-intensity map — and start replacing hunches with evidence.",
     },
   },
   {
@@ -62,9 +62,9 @@ export const WEEKS = [
     revealsShaking: true,
     story: {
       alert:
-        'the aftershock data is in. Seismometers across the Valley have mapped how hard the ground actually shook — now overlaid on your map as a color heat field. 📳🌡️',
+        'the simulated aftershock data is in. The drill\'s shaking-intensity layer is now overlaid on your map as a color heat field. 📳🌡️',
       role:
-        "You're still the planner in the Emergency Operations Center, but this week you have a real ground-motion layer. Redder ground shook harder; each crossing now carries its measured shaking.",
+        "You're still the planner in the Emergency Operations Center, but this week you have a simulated ground-motion layer. Redder ground shook harder in the model; each crossing now carries its drill shaking value.",
       call:
         're-triage the valley with this new evidence. Flag the 5 crossings you would inspect first now — and watch for surprises the heatmap can\'t see. 🔍🌉',
       hint:

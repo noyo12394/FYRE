@@ -1,4 +1,57 @@
-# 🌉 QuakeQuest: Bridge Triage — Week 1 (Bethlehem, PA drill)
+# QuakeQuest Field Lab · v2.0
+
+An interactive catastrophe-modeling learning workspace set in a simulated
+Bethlehem, PA earthquake drill.
+
+## Activity workspace
+
+- **Activities:** a course dashboard with two playable activities, completion
+  status, resume links, and the Weeks 3–6 roadmap.
+- **Field drill:** Week 1 visual triage and Week 2 simulated shaking evidence.
+  Each week keeps its own flags and reasons when switching tabs, weeks, or
+  reloading. Five crews remain the maximum per dispatch.
+- **Bridge inventory:** search bridge names, routes, and field notes; filter
+  flagged crossings; add or remove flags in the active draft. Week 2 also
+  supports shaking-zone filters and strongest-shaking sorting. Hidden damage
+  outcomes are not shown before the debrief.
+- **My progress:** planner-specific attempt history, completion tracking,
+  reopening recorded debriefs, CSV export of all responses on the device,
+  and a comparison of the latest Week 1 and Week 2 inspection plans.
+- **Field guide:** exercise instructions, terminology, and storage guidance.
+
+Tabs support arrow keys, Home/End, and shareable links such as
+`?tab=drill&week=2`. Browser back/forward restores navigation. The results
+dialog contains keyboard focus, closes with Escape, and restores focus on
+close. Layouts adapt to narrow screens and respect reduced-motion preferences.
+
+Drafts and the planner name use `quakequest-workspace-v2` in localStorage.
+History continues to use `quakequest-responses`, preserving valid v1 records.
+Storage failures are reported explicitly; responses can still be exported
+during the current session. Starting a fresh plan clears only the active
+week's draft. Recorded attempts remain in history. Browser storage does not
+sync across devices.
+
+### Development and verification
+
+```bash
+npm ci
+npm run dev
+npm test
+npm run build
+```
+
+Tests cover separate week drafts, damaged saved data, legacy response
+migration, navigation validation, replay scoring, storage failures, and CSV
+escaping/formula neutralization. Production hosting remains the existing
+Vercel project connected to GitHub. The serverless response API and Supabase
+configuration are unchanged.
+
+The setting uses Bethlehem crossing names; PGA values, structural descriptions,
+and damage outcomes are teaching scenarios, not verified engineering data or
+live reports. Only Weeks 1 and 2 are playable; future modules are clearly
+labeled “Coming soon.”
+
+## Original exercise and instructor setup
 
 A polished, playful-yet-professional browser mini-game for **Week 1** of a
 first-year undergraduate **catastrophe modeling** module. It's set as a

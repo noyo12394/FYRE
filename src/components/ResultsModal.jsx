@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { REASON_OPTIONS, SHAKE_META } from '../data/bridges.js'
 import { scoreSelection } from '../utils/scoring.js'
 
@@ -34,16 +34,21 @@ const outcomeMeta = {
 }
 
 function usefulness(b) {
-  if (b.outcome === 'Collapsed') return { text: 'Critical catch — this one collapsed.', cls: 'good' }
-  if (b.trueRisk === 'high') return { text: 'Great call — it took major damage.', cls: 'good' }
-  if (b.trueRisk === 'medium') return { text: 'Reasonable — worth a look.', cls: 'okay' }
+  if (b.outcome === 'Collapsed')
+    return { text: 'Critical catch — this one collapsed.', cls: 'good' }
+  if (b.trueRisk === 'high')
+    return { text: 'Great call — it took major damage.', cls: 'good' }
+  if (b.trueRisk === 'medium')
+    return { text: 'Reasonable — worth a look.', cls: 'okay' }
   return { text: 'Lower priority this time.', cls: 'meh' }
 }
 
 const SAVE_STATUS_TEXT = {
   saving: '⏳ Recording your response…',
   cloud: '✓ Response recorded for your instructor.',
-  local: '✓ Saved on this device (class database not connected).',
+  local: '✓ Saved on this device. The class database could not be reached.',
+  memory:
+    'Browser storage is unavailable. Export your response from My progress before leaving.',
 }
 
 // Small shaking-intensity chip reused on the feedback cards in Week 2.
@@ -69,6 +74,56 @@ export default function ResultsModal({
   onPlayAgain,
   onClose,
 }) {
+  const dialogRef = useRef(null)
+  const closeHandler = useRef(onClose)
+  closeHandler.current = onClose
+  useEffect(() => {
+    const previousFocus = document.activeElement
+    const previousOverflow = document.body.style.overflow
+    const background = [
+      ...document.querySelectorAll(
+        '.lab-topline, .header, .activity-tabs, .app__main, .app__footer, .skip-link',
+      ),
+    ]
+    const previousInert = background.map((element) => element.inert)
+    background.forEach((element) => {
+      element.inert = true
+    })
+    document.body.style.overflow = 'hidden'
+    dialogRef.current?.querySelector('button')?.focus()
+    function onKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeHandler.current()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const controls = [
+        ...dialogRef.current.querySelectorAll(
+          'button:not(:disabled), a[href], select, input, [tabindex="0"]',
+        ),
+      ]
+      const first = controls[0]
+      const last = controls[controls.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      background.forEach((element, index) => {
+        element.inert = previousInert[index]
+      })
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+      if (previousFocus?.isConnected) previousFocus.focus()
+    }
+  }, [])
   const r = scoreSelection(bridges, selectedIds, reasons)
   const revealsShaking = !!(week && week.revealsShaking)
 
@@ -76,46 +131,81 @@ export default function ResultsModal({
   // hardest? (severe/strong tiers). Teaches that shaking is a strong — but
   // imperfect — guide.
   const strongPicked = revealsShaking
-    ? r.selected.filter((b) => b.shaking && (b.shaking.zone === 'severe' || b.shaking.zone === 'strong')).length
+    ? r.selected.filter(
+        (b) =>
+          b.shaking &&
+          (b.shaking.zone === 'severe' || b.shaking.zone === 'strong'),
+      ).length
     : 0
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Inspection results">
-      <div className="modal">
-        <button className="modal__close" onClick={onClose} aria-label="Close results">
+    <div
+      className="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Inspection results"
+    >
+      <div className="modal" ref={dialogRef}>
+        <button
+          className="modal__close"
+          onClick={onClose}
+          aria-label="Close results"
+        >
           ✕
         </button>
 
         <div className="modal__header">
-          <div className="modal__mascot" aria-hidden="true">🐿️⛑️</div>
-          {week && <p className="modal__week">{week.label} · {week.name}</p>}
+          <div className="modal__mascot" aria-hidden="true">
+            🐿️⛑️
+          </div>
+          {week && (
+            <p className="modal__week">
+              {week.label} · {week.name}
+            </p>
+          )}
           <h2 className="modal__title">Inspection Debrief</h2>
           <p className="modal__label">{r.label}</p>
+          <p className="modal__simulation-note">
+            Modeled drill outcomes · For learning and reflection
+          </p>
         </div>
 
         {/* Quick stats */}
         <div className="results-stats">
           <div className="results-stat results-stat--high">
-            <span className="results-stat__num"><CountUp value={r.collapsesCaught.length} /><span className="results-stat__den">/{r.totalCollapses}</span></span>
+            <span className="results-stat__num">
+              <CountUp value={r.collapsesCaught.length} />
+              <span className="results-stat__den">/{r.totalCollapses}</span>
+            </span>
             <span className="results-stat__cap">Collapses caught</span>
           </div>
           <div className="results-stat results-stat--medium">
-            <span className="results-stat__num"><CountUp value={r.highSelected.length} /><span className="results-stat__den">/{r.totalHigh}</span></span>
+            <span className="results-stat__num">
+              <CountUp value={r.highSelected.length} />
+              <span className="results-stat__den">/{r.totalHigh}</span>
+            </span>
             <span className="results-stat__cap">High-risk flagged</span>
           </div>
           {revealsShaking ? (
             <div className="results-stat results-stat--shake">
-              <span className="results-stat__num"><CountUp value={strongPicked} /><span className="results-stat__den">/{r.selected.length}</span></span>
+              <span className="results-stat__num">
+                <CountUp value={strongPicked} />
+                <span className="results-stat__den">/{r.selected.length}</span>
+              </span>
               <span className="results-stat__cap">In strong shaking</span>
             </div>
           ) : (
             <div className="results-stat results-stat--reason">
-              <span className="results-stat__num"><CountUp value={r.reasoningHits.length} /></span>
+              <span className="results-stat__num">
+                <CountUp value={r.reasoningHits.length} />
+              </span>
               <span className="results-stat__cap">Reasons that matched</span>
             </div>
           )}
           <div className="results-stat results-stat--missed">
-            <span className="results-stat__num"><CountUp value={r.missedCollapses.length} /></span>
+            <span className="results-stat__num">
+              <CountUp value={r.missedCollapses.length} />
+            </span>
             <span className="results-stat__cap">Collapses missed</span>
           </div>
         </div>
@@ -129,7 +219,10 @@ export default function ResultsModal({
             const picked = reasons[b.id] || 'hunch'
             const matched = b.trueRisk === 'high' && picked === b.primaryFactor
             return (
-              <div key={b.id} className={`feedback-card feedback-card--${om.cls}`}>
+              <div
+                key={b.id}
+                className={`feedback-card feedback-card--${om.cls}`}
+              >
                 <div className="feedback-card__top">
                   <span className="feedback-card__emoji">{b.emoji}</span>
                   <span className="feedback-card__name">
@@ -143,14 +236,20 @@ export default function ResultsModal({
                 {revealsShaking && <ShakeChip shaking={b.shaking} />}
                 <p className="feedback-card__reason">{b.reason}</p>
                 {b.trueRisk === 'high' && (
-                  <p className={`feedback-card__match ${matched ? 'is-hit' : 'is-miss'}`}>
+                  <p
+                    className={`feedback-card__match ${matched ? 'is-hit' : 'is-miss'}`}
+                  >
                     Your hunch: {reasonLabel(picked)} —{' '}
                     {matched
                       ? 'spot on, that was the real driver! ✓'
                       : `the real driver was “${b.factors[0]}”.`}
                   </p>
                 )}
-                <p className={`feedback-card__use feedback-card__use--${use.cls}`}>{use.text}</p>
+                <p
+                  className={`feedback-card__use feedback-card__use--${use.cls}`}
+                >
+                  {use.text}
+                </p>
               </div>
             )
           })}
@@ -184,7 +283,9 @@ export default function ResultsModal({
         )}
 
         {/* Real-event insights (week-specific) */}
-        <h3 className="results-section-title">What Real Earthquakes Teach Us 🎓</h3>
+        <h3 className="results-section-title">
+          What Real Earthquakes Teach Us 🎓
+        </h3>
         <div className="insight-cards">
           {(week && week.insights ? week.insights : []).map((ins) => (
             <div key={ins.title} className="insight-card">
@@ -198,7 +299,9 @@ export default function ResultsModal({
 
         {/* Week lesson */}
         <div className="lesson-box">
-          <h3 className="lesson-box__title">{week ? week.lessonTitle : '📘 Lesson'}</h3>
+          <h3 className="lesson-box__title">
+            {week ? week.lessonTitle : '📘 Lesson'}
+          </h3>
           <p>{week ? week.lesson : ''}</p>
         </div>
 
@@ -222,7 +325,10 @@ export default function ResultsModal({
             🔁 Run {week ? `${week.label} ` : 'the drill '}again
           </button>
           {hasNext ? (
-            <button className="btn btn--primary btn--next" onClick={onAdvanceWeek}>
+            <button
+              className="btn btn--primary btn--next"
+              onClick={onAdvanceWeek}
+            >
               ▶️ Continue to {nextLabel}
             </button>
           ) : (

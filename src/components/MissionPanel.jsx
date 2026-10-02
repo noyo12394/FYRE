@@ -15,24 +15,34 @@ export default function MissionPanel({
   onToggle,
   onSetReason,
   onSubmit,
+  inputRef,
+  isSubmitting,
 }) {
   const selectedBridges = bridges.filter((b) => selectedIds.includes(b.id))
   const remaining = MAX_SELECTIONS - selectedIds.length
-  const briefText = ((week && week.brief) || 'Flag up to {MAX} bridges for the first inspection wave.')
-    .replace('{MAX}', MAX_SELECTIONS)
+  const briefText = (
+    (week && week.brief) ||
+    'Flag up to {MAX} bridges for the first inspection wave.'
+  ).replace('{MAX}', MAX_SELECTIONS)
 
   return (
     <aside className="mission-panel" aria-label="Triage panel">
       <div className="mission-panel__card">
         <h2 className="mission-panel__title">
-          <span role="img" aria-label="clipboard">📋</span> Triage Brief
+          <span role="img" aria-label="clipboard">
+            📋
+          </span>{' '}
+          Triage Brief
           {week && <span className="mission-panel__week">{week.label}</span>}
         </h2>
         <p className="mission-panel__text">{briefText}</p>
 
         <label className="student-field">
-          <span className="student-field__label">Planner on duty (your name)</span>
+          <span className="student-field__label">
+            Planner on duty (your name)
+          </span>
           <input
+            ref={inputRef}
             type="text"
             className="student-field__input"
             placeholder="e.g. Jordan Rivera"
@@ -63,7 +73,10 @@ export default function MissionPanel({
 
       <div className="mission-panel__card">
         <h3 className="mission-panel__subtitle">
-          <span role="img" aria-label="bridge">🌉</span> Flagged Bridges
+          <span role="img" aria-label="bridge">
+            🌉
+          </span>{' '}
+          Flagged Bridges
         </h3>
         {selectedBridges.length === 0 ? (
           <p className="mission-panel__empty">
@@ -108,10 +121,10 @@ export default function MissionPanel({
       <button
         type="button"
         className="btn btn--primary mission-panel__submit"
-        disabled={selectedIds.length === 0}
+        disabled={selectedIds.length === 0 || isSubmitting}
         onClick={onSubmit}
       >
-        🚒 Dispatch Inspection Crews
+        {isSubmitting ? 'Recording dispatch…' : '🚒 Dispatch Inspection Crews'}
       </button>
     </aside>
   )
