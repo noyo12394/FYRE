@@ -10,6 +10,8 @@ import {
   csvForResponses,
   readStored,
   writeStored,
+  dispatchRequirements,
+  responseId,
   lockBaseline,
   isDispatchReady,
 } from './progress.js'
@@ -248,4 +250,42 @@ test('CSV preserves both plans and neutralizes spreadsheet formulas', () => {
 test('missing browser storage returns usable fallbacks without throwing', () => {
   assert.deepEqual(readStored('not-available', []), [])
   assert.equal(writeStored('not-available', {}), false)
+})
+
+test('dispatch requirements identify the exact missing crews, name, and evidence', () => {
+  assert.deepEqual(
+    dispatchRequirements(
+      {
+        selectedIds: ['fahy', 'route-412'],
+        reasons: { fahy: 'hunch', 'route-412': 'soft' },
+      },
+      ' ',
+    ),
+    {
+      missingCrews: 3,
+      missingName: true,
+      missingReasons: ['fahy'],
+    },
+  )
+  assert.deepEqual(dispatchRequirements(draft, 'Tester'), {
+    missingCrews: 0,
+    missingName: false,
+    missingReasons: [],
+  })
+})
+test('locking a hunch preserves the baseline and resets the final select to a real option', () => {
+  const start = normalizeWorkspace({
+    draft: { ...draft, reasons: { ...reasons, 'route-412': 'hunch' } },
+    studentName: 'Tester',
+  })
+  const next = lockBaseline(start)
+  assert.equal(next.baseline.reasons['route-412'], 'hunch')
+  assert.equal(next.draft.reasons['route-412'], '')
+  assert.equal(isDispatchReady(next.draft, next.studentName), false)
+})
+test('attempt IDs work on browsers without crypto.randomUUID', () => {
+  assert.equal(responseId({ randomUUID: () => 'test-uuid' }), 'test-uuid')
+  assert.match(responseId({}), /^mission-/)
+  assert.match(responseId(null), /^mission-/)
+  assert.notEqual(responseId(null), responseId(null))
 })

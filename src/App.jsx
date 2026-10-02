@@ -3,6 +3,7 @@ import Header from './components/Header.jsx'
 import CityMap from './components/CityMap.jsx'
 import MissionPanel from './components/MissionPanel.jsx'
 import MissionBriefing from './components/MissionBriefing.jsx'
+import BridgeChoices from './components/BridgeChoices.jsx'
 import ResultsModal from './components/ResultsModal.jsx'
 import ActivityTabs, { ACTIVITY_TABS } from './components/ActivityTabs.jsx'
 import BridgeInventory from './components/BridgeInventory.jsx'
@@ -26,6 +27,8 @@ import {
   csvForResponses,
   lockBaseline,
   isDispatchReady,
+  dispatchRequirements,
+  responseId,
 } from './utils/progress.js'
 
 export default function App() {
@@ -46,9 +49,12 @@ export default function App() {
   const [toast, setToast] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showShake, setShowShake] = useState(true)
+  const [validationAttempted, setValidationAttempted] = useState(false)
   const submitLock = useRef(false)
   const nameInput = useRef(null)
   const phaseHeading = useRef(null)
+  const choicesRef = useRef(null)
+  const plannerRef = useRef(null)
   const { studentName, draft, phase, baseline } = workspace
   const { selectedIds, reasons } = draft
   const revealsShaking = phase !== 'recon'
@@ -147,13 +153,41 @@ export default function App() {
     })
   }
   function advancePhase() {
+    setValidationAttempted(true)
     if (phase === 'recon') {
-      if (selectedIds.length !== MAX_SELECTIONS) return
+      if (selectedIds.length !== MAX_SELECTIONS) {
+        setToast(
+          `Assign ${MAX_SELECTIONS - selectedIds.length} more crews using the numbered crossing cards.`,
+        )
+        showChoices()
+        return
+      }
       setWorkspace((current) => lockBaseline(current))
       setToast('Shaking map unlocked. Hospital dispatch is on the radio!')
-    } else if (phase === 'intel' && isDispatchReady(draft, studentName)) {
+    } else if (phase === 'intel') {
+      if (!isDispatchReady(draft, studentName)) {
+        const missing = dispatchRequirements(draft, studentName)
+        if (missing.missingCrews) {
+          showChoices()
+          setToast(
+            `Assign ${missing.missingCrews} more crews before reviewing.`,
+          )
+        } else if (missing.missingName) {
+          nameInput.current?.focus()
+          setToast('Add your planner name to continue.')
+        } else {
+          document
+            .getElementById(`reason-${missing.missingReasons[0]}`)
+            ?.focus()
+          setToast(
+            'Choose an evidence-based reason for each assigned crossing.',
+          )
+        }
+        return
+      }
       setWorkspace((current) => ({ ...current, phase: 'review' }))
     }
+    setValidationAttempted(false)
     requestAnimationFrame(() => phaseHeading.current?.focus())
   }
   async function handleSubmit() {
@@ -168,7 +202,7 @@ export default function App() {
     setIsSubmitting(true)
     const score = scoreMission(bridges, selectedIds, reasons)
     const payload = {
-      id: crypto.randomUUID(),
+      id: responseId(),
       student: studentName.trim(),
       missionId: MISSION_ID,
       // Existing instructor table keeps its numeric column; no new weekly UI.
@@ -251,8 +285,17 @@ export default function App() {
     setResult(null)
     setShowConfetti(false)
     setShowShake(true)
+    setValidationAttempted(false)
     navigate('mission')
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  function showChoices() {
+    choicesRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    choicesRef.current?.focus({ preventScroll: true })
+  }
+  function showPlanner() {
+    plannerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    nameInput.current?.focus({ preventScroll: true })
   }
   function downloadCSV() {
     if (!responses.length) {
@@ -372,17 +415,15 @@ export default function App() {
                         onToggle={toggleBridge}
                         showShake={revealsShaking && showShake}
                         revealsShaking={revealsShaking}
+                        editable={editable}
                       />
                       <div className="mission-map-caption">
                         <span>
-                          Click a crossing to assign a crew. Need larger
-                          controls?
+                          Select a numbered bridge, or use the crossing cards
+                          below.
                         </span>
-                        <button
-                          className="lab-action"
-                          onClick={() => navigate('inventory')}
-                        >
-                          Open bridge intel <Icon name="arrow" />
+                        <button className="lab-action" onClick={showChoices}>
+                          Choose crossings <Icon name="arrow" />
                         </button>
                       </div>
                       {revealsShaking && (
@@ -395,6 +436,15 @@ export default function App() {
                           Show simulated shaking overlay
                         </label>
                       )}
+                      <BridgeChoices
+                        bridges={bridges}
+                        selectedIds={selectedIds}
+                        revealsShaking={revealsShaking}
+                        editable={editable}
+                        onToggle={toggleBridge}
+                        sectionRef={choicesRef}
+                        onReturn={showPlanner}
+                      />
                     </div>
                     <MissionPanel
                       bridges={bridges}
@@ -403,6 +453,8 @@ export default function App() {
                       studentName={studentName}
                       inputRef={nameInput}
                       isSubmitting={isSubmitting}
+                      panelRef={plannerRef}
+                      validationAttempted={validationAttempted}
                       onNameChange={(name) =>
                         setWorkspace((current) => ({
                           ...current,
@@ -459,7 +511,7 @@ export default function App() {
         ))}
       </main>
       <footer className="app__footer lab-footer">
-        <span>One continuous challenge · QuakeQuest v3</span>
+        <span>One continuous challenge · QuakeQuest v3.1</span>
         <span>Simulated outcomes. Not an engineering assessment.</span>
         <button className="lab-action" onClick={downloadCSV}>
           <Icon name="download" /> Export mission log

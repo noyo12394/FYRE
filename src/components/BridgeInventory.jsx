@@ -61,6 +61,12 @@ export default function BridgeInventory({
             : 'Field notes only · lock your first plan to unlock shaking'}
         </span>
       </div>
+      {!editable && (
+        <p className="inventory-locked" role="status">
+          Your plan is locked. Return to the mission and choose “Back to
+          editing” to change assignments, or start a new mission after dispatch.
+        </p>
+      )}
       <div className="inventory-tools">
         <label className="lab-search">
           <Icon name="search" />

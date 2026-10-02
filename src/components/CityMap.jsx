@@ -13,6 +13,7 @@ export default function CityMap({
   onToggle,
   showShake,
   revealsShaking,
+  editable,
 }) {
   return (
     <div
@@ -243,10 +244,12 @@ export default function CityMap({
 
       {/* Interactive bridges */}
       <div className="city-map__bridges">
-        {bridges.map((bridge) => (
+        {bridges.map((bridge, index) => (
           <Bridge
             key={bridge.id}
             bridge={bridge}
+            number={index + 1}
+            editable={editable}
             selected={selectedIds.includes(bridge.id)}
             showShaking={revealsShaking}
             onToggle={onToggle}

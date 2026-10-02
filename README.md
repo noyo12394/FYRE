@@ -1,4 +1,4 @@
-# QuakeQuest: The Golden Hour · v3
+# QuakeQuest: The Golden Hour · v3.1
 
 One continuous earthquake-response challenge in simulated Bethlehem, PA.
 The previous visual-triage and shaking exercises are merged into this mission.
@@ -41,6 +41,12 @@ The existing Vercel Git integration deploys production from `main`.
 The optional `.github/workflows/deploy.yml` only runs when opted in.
 
 ## Persistence and accessibility
+
+The map uses stable 44px numbered buttons, matching a visible crossing-card
+selector beneath it. Crews can be assigned from either surface. Clicking an
+incomplete next step explains missing assignments, names, or reasons and
+focuses the relevant control. Native selects have explicit touch-friendly
+sizes, including Safari styling. Mobile navigation shows every support tab.
 
 The active workspace uses `quakequest-mission-v3`; the active old draft is
 migrated from `quakequest-workspace-v2` without unlocking evidence. The old

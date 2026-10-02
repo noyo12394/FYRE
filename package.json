@@ -1,7 +1,7 @@
 {
   "name": "quakequest-bridge-rescue",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "module",
   "description": "QuakeQuest Field Lab — interactive catastrophe-modeling activities, bridge triage, and saved learner progress.",
   "scripts": {

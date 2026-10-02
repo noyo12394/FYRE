@@ -1,6 +1,6 @@
 import React from 'react'
 import { MAX_SELECTIONS, REASON_OPTIONS } from '../data/bridges.js'
-import { isDispatchReady } from '../utils/progress.js'
+import { isDispatchReady, dispatchRequirements } from '../utils/progress.js'
 
 export default function MissionPanel({
   bridges,
@@ -15,14 +15,21 @@ export default function MissionPanel({
   onSubmit,
   inputRef,
   isSubmitting,
+  panelRef,
+  validationAttempted,
 }) {
   const { selectedIds, reasons } = draft
   const selected = selectedIds.map((id) => bridges.find((b) => b.id === id))
   const review = phase === 'review',
     recon = phase === 'recon'
   const ready = isDispatchReady(draft, studentName)
+  const missing = dispatchRequirements(draft, studentName)
   return (
-    <aside className="mission-panel" aria-label="Crew dispatch planner">
+    <aside
+      ref={panelRef}
+      className="mission-panel"
+      aria-label="Crew dispatch planner"
+    >
       <div className="mission-panel__card">
         <p className="lab-eyebrow">
           {recon
@@ -53,6 +60,12 @@ export default function MissionPanel({
             autoComplete="name"
             placeholder="e.g. Jordan Rivera"
             readOnly={review}
+            aria-required={!recon}
+            aria-invalid={
+              validationAttempted && !recon && missing.missingName
+                ? true
+                : undefined
+            }
             onChange={(e) => onNameChange(e.target.value)}
           />
         </label>
@@ -128,6 +141,14 @@ export default function MissionPanel({
                     </span>
                     <select
                       className="reason-picker__select"
+                      id={`reason-${bridge.id}`}
+                      aria-invalid={
+                        validationAttempted &&
+                        !recon &&
+                        missing.missingReasons.includes(bridge.id)
+                          ? true
+                          : undefined
+                      }
                       aria-label={`Reason for ${bridge.name}`}
                       value={reasons[bridge.id] || ''}
                       onChange={(e) => onSetReason(bridge.id, e.target.value)}
@@ -148,25 +169,51 @@ export default function MissionPanel({
           </ol>
         )}
       </div>
-      <p className="mission-validation" role="status">
+      <p id="mission-requirements" className="mission-validation" role="status">
         {recon
-          ? `${MAX_SELECTIONS - selected.length} more crossing${MAX_SELECTIONS - selected.length === 1 ? '' : 's'} needed to unlock the next evidence.`
+          ? missing.missingCrews
+            ? `Assign ${missing.missingCrews} more crew${missing.missingCrews === 1 ? '' : 's'} using the map or crossing cards.`
+            : 'All five crews assigned. Ready to reveal shaking.'
           : ready
             ? 'Five crews, five reasons. Ready for your final call.'
             : 'Choose five crossings, give each a reason other than a hunch, and add your name.'}
       </p>
+      {!recon && !ready && (
+        <ul
+          className="mission-missing"
+          aria-label="Steps needed before dispatch"
+        >
+          {missing.missingCrews > 0 && (
+            <li>
+              Assign {missing.missingCrews} more crew
+              {missing.missingCrews === 1 ? '' : 's'}.
+            </li>
+          )}
+          {missing.missingName && <li>Add your planner name.</li>}
+          {missing.missingReasons.length > 0 && (
+            <li>
+              Choose evidence for:{' '}
+              {missing.missingReasons
+                .map((id) => bridges.find((bridge) => bridge.id === id)?.name)
+                .join(', ')}
+              .
+            </li>
+          )}
+        </ul>
+      )}
       <button
         type="button"
         className="btn btn--primary mission-panel__submit"
-        disabled={
-          isSubmitting || (recon ? selected.length !== MAX_SELECTIONS : !ready)
-        }
+        disabled={isSubmitting}
+        aria-describedby="mission-requirements"
         onClick={review ? onSubmit : onAdvance}
       >
         {isSubmitting
           ? 'Recording dispatch…'
           : recon
-            ? 'Lock plan & reveal shaking →'
+            ? missing.missingCrews
+              ? `Choose ${missing.missingCrews} more crossing${missing.missingCrews === 1 ? '' : 's'} →`
+              : 'Lock plan & reveal shaking →'
             : review
               ? '🚒 Dispatch crews & reveal outcomes'
               : 'Review final dispatch →'}
