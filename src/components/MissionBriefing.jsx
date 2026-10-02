@@ -1,46 +1,49 @@
 import React from 'react'
 import Icon from './Icon.jsx'
-import { PHASES } from '../data/mission.js'
+import { missionGuidance } from '../utils/missionGuide.js'
 
 export default function MissionBriefing({
   phase,
   selectedIds,
   reasons,
   headingRef,
+  studentName,
+  onContinue,
 }) {
-  const active = PHASES.findIndex((step) => step.id === phase)
+  const guide = missionGuidance(phase, { selectedIds, reasons }, studentName)
   const evidenceCount = selectedIds.filter(
     (id) => reasons[id] && reasons[id] !== 'hunch',
   ).length
   return (
     <div className="mission-briefing">
-      <ol className="mission-steps" aria-label="Mission stages">
-        {PHASES.map((step, index) => (
-          <li
-            key={step.id}
-            className={
-              index < active ? 'is-done' : index === active ? 'is-current' : ''
-            }
-            aria-current={index === active ? 'step' : undefined}
-          >
-            <span className="mission-step-icon">
-              <Icon name={index < active ? 'check' : step.icon} />
-            </span>
-            <span>
-              <strong>
-                {index + 1}. {step.name}
-              </strong>
-              <small>{step.detail}</small>
-            </span>
-          </li>
-        ))}
-      </ol>
+      <section
+        className="mission-instructions"
+        aria-labelledby="mission-instructions-title"
+      >
+        <p className="lab-eyebrow">WHAT TO DO NOW</p>
+        <h2 id="mission-instructions-title" ref={headingRef} tabIndex={-1}>
+          {guide.title}
+        </h2>
+        <ol>
+          {guide.instructions.map((instruction) => (
+            <li key={instruction}>{instruction}</li>
+          ))}
+        </ol>
+        <div className="mission-next-action">
+          <p role="status">
+            <strong>Next:</strong> {guide.next}
+          </p>
+          <button className="btn btn--primary" onClick={onContinue}>
+            {guide.action} <Icon name="arrow" />
+          </button>
+        </div>
+      </section>
       <div className="mission-briefing__body">
         <div>
           <p className="lab-eyebrow">
             INTERACTIVE RESPONSE SIMULATION · 10–15 MIN
           </p>
-          <h2 ref={headingRef} tabIndex={-1}>
+          <h2>
             {phase === 'recon'
               ? 'The ground stopped. Your mission starts.'
               : phase === 'intel'

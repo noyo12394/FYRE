@@ -18,6 +18,7 @@ export default function MissionPanel({
   panelRef,
   validationAttempted,
   draftStorageAvailable,
+  actionRef,
 }) {
   const { selectedIds, reasons } = draft
   const selected = selectedIds.map((id) => bridges.find((b) => b.id === id))
@@ -208,6 +209,7 @@ export default function MissionPanel({
         </ul>
       )}
       <button
+        ref={actionRef}
         type="button"
         className="btn btn--primary mission-panel__submit"
         disabled={isSubmitting}

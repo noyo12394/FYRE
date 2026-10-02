@@ -3,6 +3,7 @@ import Header from './components/Header.jsx'
 import CityMap from './components/CityMap.jsx'
 import MissionPanel from './components/MissionPanel.jsx'
 import MissionBriefing from './components/MissionBriefing.jsx'
+import MissionSequence from './components/MissionSequence.jsx'
 import BridgeChoices from './components/BridgeChoices.jsx'
 import ResultsModal from './components/ResultsModal.jsx'
 import ActivityTabs, { ACTIVITY_TABS } from './components/ActivityTabs.jsx'
@@ -15,6 +16,7 @@ import Confetti from './components/Confetti.jsx'
 import { bridges, MAX_SELECTIONS } from './data/bridges.js'
 import { MISSION, MISSION_ID } from './data/mission.js'
 import { scoreMission } from './utils/scoring.js'
+import { missionGuidance } from './utils/missionGuide.js'
 import {
   DRAFT_KEY,
   LEGACY_DRAFT_KEY,
@@ -55,6 +57,7 @@ export default function App() {
   const phaseHeading = useRef(null)
   const choicesRef = useRef(null)
   const plannerRef = useRef(null)
+  const plannerAction = useRef(null)
   const { studentName, draft, phase, baseline } = workspace
   const { selectedIds, reasons } = draft
   const revealsShaking = phase !== 'recon'
@@ -301,6 +304,30 @@ export default function App() {
     plannerRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
     nameInput.current?.focus({ preventScroll: true })
   }
+  function followCurrentStep() {
+    const guide = missionGuidance(phase, draft, studentName)
+    if (guide.target === 'results') {
+      if (lastResult)
+        setResult({
+          payload: lastResult,
+          saveStatus: lastResult.storage || 'local',
+        })
+      else navigate('progress')
+      return
+    }
+    if (guide.target === 'crossings') {
+      showChoices()
+      return
+    }
+    const target =
+      guide.target === 'name'
+        ? nameInput.current
+        : guide.target === 'reason'
+          ? document.getElementById(`reason-${guide.reasonId}`)
+          : plannerAction.current
+    target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    target?.focus({ preventScroll: true })
+  }
   function downloadCSV() {
     if (!responses.length) {
       setToast('Complete a mission to create an export.')
@@ -339,6 +366,14 @@ export default function App() {
       </div>
       <Header mission={MISSION} />
       <ActivityTabs activeTab={activeTab} onChange={navigate} />
+      <MissionSequence
+        phase={phase}
+        activeTab={activeTab}
+        onReturn={() => {
+          navigate('mission')
+          requestAnimationFrame(() => phaseHeading.current?.focus())
+        }}
+      />
       <main id="workspace-panel" className="app__main" tabIndex={-1}>
         <section
           id={`panel-${activeTab}`}
@@ -353,6 +388,8 @@ export default function App() {
                 selectedIds={selectedIds}
                 reasons={reasons}
                 headingRef={phaseHeading}
+                studentName={studentName}
+                onContinue={followCurrentStep}
               />
               {phase === 'complete' ? (
                 <div className="mission-complete lab-panel">
@@ -461,6 +498,7 @@ export default function App() {
                       validationAttempted={validationAttempted}
                       onNameChange={setPlannerName}
                       draftStorageAvailable={draftStorageAvailable}
+                      actionRef={plannerAction}
                       onToggle={toggleBridge}
                       onSetReason={setReason}
                       onMove={moveCrew}

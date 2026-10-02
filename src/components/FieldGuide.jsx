@@ -8,9 +8,10 @@ export default function FieldGuide({ onStart }) {
       <div className="section-heading">
         <div>
           <p className="lab-eyebrow">YOUR POCKET FIELD GUIDE</p>
-          <h2>One mission, four moments.</h2>
+          <h2>One mission, four steps.</h2>
           <p className="lab-muted">
-            Make a call, adapt to evidence, and learn from the consequences.
+            Follow the sequence tracker in order. Tabs are tools; the crew
+            planner buttons advance the mission.
           </p>
         </div>
         <button className="lab-action" onClick={onStart}>

@@ -65,7 +65,17 @@ does not submit it to the instructor database.
 
 Tabs support arrow keys and Home/End; URLs and browser history preserve the
 selected tab. Old `?tab=drill&week=2` links open the single mission, and the
-obsolete query is removed. A URL cannot skip the evidence reveal. The debrief
+obsolete query is removed. A URL cannot skip the evidence reveal.
+
+The mission sequence stays visible across all support tabs. Numbered steps
+show completed, current, next, and later states using text as well as color.
+Each stage has a three-item instruction checklist, a live next-action prompt,
+and a guidance button that scrolls to and focuses the required control.
+Guidance does not skip stages or submit responses; the crew planner buttons
+still lock the initial plan, open review, and dispatch. Instructions stay
+visible on phones and focus updates to the new stage when it unlocks.
+
+The debrief
 traps keyboard focus, closes with Escape, makes the background inert, and
 restores focus. Bridge intel provides larger alternatives to map controls.
 Layouts adapt to phones and respect reduced-motion preferences.
